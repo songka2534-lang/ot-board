@@ -146,6 +146,35 @@ details[open] > summary::after{content:"ซ่อน"}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--on-ink);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
 @media (min-width:600px){.cell{height:64px}}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
+
+/* OT hours by type */
+.htiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.ht{background:var(--ac-tint);border:1px solid var(--line);border-radius:10px;padding:7px 8px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.ht span{font-size:11px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:4px} .ht b{font-size:16px;white-space:nowrap} .ht b small{font-size:11px;font-weight:500}
+.ht em{font-style:normal;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ht.no{background:none;border-style:dashed} .ht.no b,.ht.no em{color:var(--faint)}
+.sq{display:inline-block;width:8px;height:8px;border-radius:2px;flex:none}
+.hbig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap} .hbig b{font-size:32px;line-height:1.1;letter-spacing:-.01em}
+.hh,.hr{display:grid;grid-template-columns:38px minmax(0,1fr) 76px 34px;align-items:center;gap:8px}
+.hh{font-size:11px;color:var(--muted);padding:0 6px 2px} .hh span:nth-child(n+3),.hr .tr{text-align:right}
+.hr{width:100%;min-height:36px;padding:3px 6px;border:0;border-top:1px solid var(--line);background:none;color:var(--fg);font-size:13px;text-align:left;border-radius:0}
+.hr .mo{color:var(--muted)} .hr.now .mo{color:var(--ac-ink);font-weight:700} .hr b{font-weight:600;white-space:nowrap} .hr .hd{font-size:12px;color:var(--muted)}
+.hr.op{background:var(--ac-tint);border-radius:8px 8px 0 0;border-top-color:transparent}
+.hbar{height:12px;border-radius:6px;background:var(--sunk);display:flex;overflow:hidden} .hbar i{display:block;height:100%}
+.hdet{background:var(--ac-tint);padding:0 6px 8px 52px;border-radius:0 0 8px 8px;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--fg2)}
+.hdet span{display:inline-flex;align-items:center;gap:4px}
+.mx{font-size:10px;color:var(--ac-ink)}
+/* editable expenses */
+.xe{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:44px;padding:0 4px;border:0;border-top:1px solid var(--line);background:none;color:var(--fg);font-size:14px;text-align:left;border-radius:0}
+.xe .am{display:flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap} .xe svg{width:14px;height:14px;color:var(--muted);flex:none}
+.tag{font-size:10.5px;color:var(--ac-ink);background:var(--ac-soft);border-radius:6px;padding:1px 6px;margin-left:6px;font-weight:500;white-space:nowrap}
+.stepper{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;gap:8px}
+.stepper button{min-height:52px;border:1px solid var(--line2);border-radius:12px;background:var(--surface);font-size:14px;color:var(--fg2)}
+.field .stepper input{min-height:52px;border:2px solid var(--ac);border-radius:12px;text-align:center;font-size:22px;font-weight:700}
+.radio{display:flex;align-items:center;gap:10px;min-height:46px;padding:8px 12px;border:1px solid var(--line2);border-radius:12px;background:var(--surface);font-size:14px;color:var(--fg);text-align:left;width:100%}
+.radio::before{content:'';display:block;flex:none;box-sizing:border-box;width:18px;height:18px;border-radius:50%;border:2px solid var(--faint)}
+.radio[aria-pressed="true"]{border:2px solid var(--ac);background:var(--ac-tint)} .radio[aria-pressed="true"]::before{border:5px solid var(--ac);background:var(--surface)}
+.btn.danger{background:none;color:var(--bad);text-decoration:underline;font-weight:500}
 </style>
 </head>
 <body>
@@ -288,6 +317,27 @@ function parseAttendance(text,shiftEnd){
     if(isWork)out.push({ds,e:{s:'work',ot}});else out.push({ds,e:act?{s:'hol',ot}:{s:'off'}});
   }
   return out}
+
+/* ---------- OT hours by type (multiplier → hours) ---------- */
+function meHrs(S,k,f){const c=S.cycles[k]||{},sal=salaryFor(S,k),h=sal/240;const o={a:{},e:{},b:{},hol:0,known:true,logged:false};
+  const add=(t,m,hh)=>{if(!hh)return;o[t][m]=(o[t][m]||0)+hh;if(t==='a')o.b[m]=(o.b[m]||0)+hh*h*m};
+  if(c.actual&&c.actual.otDays!=null){const a=c.actual;add('a',1,(a.holDays||0)*8);add('a',1.5,a.otHours||0);add('a',3,a.h3||0);o.hol=a.holDays||0;o.logged=true;return o}
+  const st=meStats(S,k);const lk=Object.keys(c.days||{}).sort();const last=lk[lk.length-1]||'';const slip=!!(c.slip&&c.slip.gross);
+  if(slip&&!lk.length){o.known=false;return o}
+  for(const ds of datesIn(S,k)){const e=c.days&&c.days[ds];
+    if(e){o.logged=true;if(e.s==='work')add('a',1.5,+e.ot||0);else if(e.s==='hol'){add('a',1,8);add('a',3,+e.ot||0);o.hol++}}
+    else if(slip||(ds<=last&&isOffDay(S,'me',ds))){}
+    else if(isOffDay(S,'me',ds)){const p=st.pHol*f;add('e',1,p*8);add('e',3,p*st.avgH3)}
+    else add('e',1.5,Math.min(1,st.pOt*f)*st.avgOt)}
+  return o}
+function ptHrs(S,k,f){const c=S.cycles[k]||{},set=cfg(S,'partner'),h=set.wage/8,st=ptStats(S,k),hm=holMap(S,'partner');const o={a:{},e:{},b:{},hol:0,known:true,logged:false};
+  const add=(t,m,hh,rate)=>{if(!hh)return;o[t][m]=(o[t][m]||0)+hh;if(t==='a')o.b[m]=(o.b[m]||0)+hh*rate};
+  const lk=Object.keys(c.days||{}).sort();const last=lk[lk.length-1]||'';
+  for(const ds of datesIn(S,k)){const e=c.days&&c.days[ds];
+    if(e){o.logged=true;if(e.s==='work')add('a',set.ot15,+e.ot||0,h*set.ot15);else if(e.s==='hol'){add('a',set.holMult,8,h*set.holMult);add('a',set.ot3,+e.ot||0,h*set.ot3);o.hol++}}
+    else if(hm[ds]||(ds<=last&&st.p[parseD(ds).getDay()]<0.5)){}
+    else add('e',set.ot15,st.p[parseD(ds).getDay()]*st.avgOt*f)}
+  return o}
 // CALC-END
 /* ================= app (mobile calendar) ================= */
 const S={settings:{},cycles:{},person:'me',tab:'cal',sel:{me:null,partner:null},sheet:null,mode:{},scenario:'mid',db:null,dbState:'loading',sample:null,canImg:false,slipForm:null,slipBusy:false,pasteRes:null,toast:'',pending:0,dirty:false,lastSync:null,err:'',cnLink:''};
@@ -298,7 +348,7 @@ S.tab=tabFromHash();
 try{const v=localStorage.getItem('otb-scn');if(v&&SCN[v])S.scenario=v;const pp=localStorage.getItem('otb-person');if(pp==='me'||pp==='partner')S.person=pp}catch(e){}
 
 const fmt=(x,d=0)=>(x==null||isNaN(x))?'–':Number(x).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
-const B=(x,d=0)=>'฿'+fmt(x,d);
+const B=(x,d=0)=>(x<0?'−฿'+fmt(-x,d):'฿'+fmt(x,d));
 const kB=x=>'฿'+(Math.abs(x)>=100000?(x/1000).toFixed(1)+'k':fmt(x));
 const kfmt=x=>(x/1000).toFixed(1)+'k';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -421,7 +471,17 @@ function renderCal(){const p=S.person,k=selKey(p);let chips;
   return `${topBar('OT Board',personSeg())}${banner()}${cycNav(p)}<div class="chips">${chips}</div>${calGrid(p,k)}${todayCard(p)}`}
 
 /* ---------- day sheet ---------- */
-function sheetHTML(){if(!S.sheet)return '';const p=S.person,ds=S.sheet.d;const e=getDay(S,p,ds),off=isOffDay(S,p,ds),hn=holMap(S,p)[ds];
+function exSheetHTML(){const sh=S.sheet.ex,k=sh.k;const {rec,once}=exList(k);const x=(sh.kind==='once'?once:rec).find(z=>z.id===sh.id);if(!x)return '';
+  const L=cycleLabel(k);const base=sh.kind==='rec'?exAmt(x,k):x.amt;const scope=sh.scope||'fwd';
+  return `<div class="scrim" data-act="close"></div><div class="sheet p-me" role="dialog" aria-modal="true" aria-label="แก้รายจ่าย ${esc(x.name)}"><div class="in"><div class="grab"></div>
+  <div class="row" style="align-items:center"><div><b style="font-size:20px">แก้รายจ่าย</b><div class="tiny muted">${esc(x.cat||'อื่นๆ')} · ${sh.kind==='rec'?'ทุกเดือน':'เฉพาะ'+L.name}</div></div><button class="x" type="button" data-act="close" aria-label="ปิด" id="sheetclose">✕</button></div>
+  <label class="field">ชื่อรายการ<input id="ex-e-name" type="text" value="${esc(x.name)}"></label>
+  <div class="field">จำนวนเงิน<div class="stepper"><button type="button" data-act="exstep" data-v="-100" aria-label="ลด 100 บาท">−100</button><input id="ex-e-amt" type="number" inputmode="decimal" min="0" step="1" value="${esc(x.amt)}" aria-label="จำนวนเงิน"><button type="button" data-act="exstep" data-v="100" aria-label="เพิ่ม 100 บาท">+100</button></div>
+  <span class="tiny muted">ตอนนี้ ${B(x.amt)}${x.ovr?' (แก้เฉพาะรอบนี้ · ปกติ '+B(base)+')':''} · แตะตัวเลขเพื่อพิมพ์เอง</span></div>
+  <label class="field">หมวด<select id="ex-e-cat">${EXCATS.map(c=>`<option ${c===(x.cat||'อื่นๆ')?'selected':''}>${c}</option>`).join('')}</select></label>
+  ${sh.kind==='rec'?`<div class="field">ใช้ยอดใหม่กับ<button type="button" class="radio" data-act="exscope" data-v="once" aria-pressed="${scope==='once'}">เฉพาะ${L.name} · เดือนอื่นยัง ${B(base)}</button><button type="button" class="radio" data-act="exscope" data-v="fwd" aria-pressed="${scope==='fwd'}">ตั้งแต่${L.name} เป็นต้นไป · รอบก่อนไม่เปลี่ยน</button></div>`:''}
+  <div class="btns"><button class="btn" type="button" data-act="exsave" style="flex:1">บันทึก</button><button class="btn danger" type="button" data-act="exremove">${sh.kind==='rec'?'ลบตั้งแต่รอบนี้':'ลบรายการ'}</button></div></div></div>`}
+function sheetHTML(){if(!S.sheet)return '';if(S.sheet.ex)return exSheetHTML();const p=S.person,ds=S.sheet.d;const e=getDay(S,p,ds),off=isOffDay(S,p,ds),hn=holMap(S,p)[ds];
   const mode=S.mode[p+ds]||autoMode(p,ds);const k=cycleOf(S,p,parseD(ds));
   const opts=p==='me'?[['work','ทำงาน'],['hol','มาวันหยุด'],['off','หยุด / ลา']]:[['work','มาทำงาน'],['hol','มาวันหยุด'],['sick','ลาป่วย'],['leave','ลากิจ'],['off','หยุด']];
   const seg=`<div class="seg" role="group" aria-label="สถานะ" style="grid-template-columns:repeat(${p==='me'?3:3},minmax(0,1fr))">${opts.map(([v,l])=>`<button type="button" data-act="mode" data-v="${v}" aria-pressed="${mode===v}">${l}</button>`).join('')}</div>`;
@@ -462,6 +522,7 @@ function renderSum(){
   <div class="legend" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr))"><span><i class="sw" style="background:var(--me)"></i>เงินเดือนสง ${Math.round(pc(a))}%</span><span><i class="sw" style="background:var(--pt)"></i>ค่าแรงตา ${Math.round(pc(c))}%</span><span><i class="sw" style="background:var(--me-mid)"></i>OT + เบี้ยสง ${Math.round(pc(b))}%</span><span><i class="sw" style="background:var(--pt-mid)"></i>OT + เบี้ยตา ${Math.round(pc(d))}%</span></div></section>
   <div class="two"><button class="pc" type="button" data-act="goperson" data-v="me" style="border-top:4px solid var(--me)"><span>สง</span><b>${B(M.gross)}</b><small>OT ${B(M.ot)} · สุทธิ ${B(M.net)}</small></button>
   <button class="pc" type="button" data-act="goperson" data-v="partner" style="border-top:4px solid var(--pt)"><span>ตา</span><b>${B(P.gross)}</b><small>OT ${B(P.ot)} · สุทธิ ${B(P.net)}</small></button></div>
+  ${hoursCard()}
   <section class="card"><div class="row"><h2>OT รายเดือน</h2><span class="tiny muted">ลายเส้น = คาดการณ์</span></div><div class="bars">${bars}</div>
   <div class="months">${M.rows.map(r=>`<span class="${r.key===ck?'now':''}">${TH_M[splitKey(r.key).m-1]}</span>`).join('')}</div>
   <div class="legend"><span><i class="sw" style="background:var(--me)"></i>สง</span><span><i class="sw" style="background:var(--pt)"></i>ตา (ติกครบ)</span><span><i class="sw h-pt"></i>ตา (ประมาณ)</span></div></section>
@@ -470,6 +531,43 @@ function renderSum(){
   <details class="card"><summary>ดูรายรอบ · สง</summary><div class="tw"><table><thead><tr><th>รอบ</th><th>รายได้</th><th>OT</th><th>สุทธิ</th><th>ที่มา</th></tr></thead><tbody>${rows(M,'me')}<tr class="sum p-me"><td>รวม</td><td>${fmt(M.gross)}</td><td>${fmt(M.ot)}</td><td>${fmt(M.net)}</td><td></td></tr></tbody></table></div></details>
   <details class="card"><summary>ดูรายรอบ · ตา</summary><div class="tw"><table><thead><tr><th>รอบ</th><th>รายได้</th><th>OT</th><th>สุทธิ</th><th>ที่มา</th></tr></thead><tbody>${rows(P,'partner')}<tr class="sum p-pt"><td>รวม</td><td>${fmt(P.gross)}</td><td>${fmt(P.ot)}</td><td>${fmt(P.net)}</td><td></td></tr></tbody></table></div></details>
   <div class="tiny muted">ภาษีของสงประมาณจากรายได้ทั้งปี หักค่าใช้จ่าย ลดหย่อนส่วนตัว ประกันสังคม และกองทุน · ไม่นับเงินก้อนพิเศษ · ของตายังไม่คิดภาษี · “น้อย/มาก” ปรับ OT ที่คาด −15% / +10%</div>`}
+
+
+/* ---------- OT hours card (summary tab) ---------- */
+const HCOL={me:{1:'#A9DCF5',1.5:'#0379B8',2:'#8A9BD1',3:'#033F63'},partner:{1:'#A9DCF5',1.5:'#1E3A8A',2:'#A7B5E0',3:'#4F6BD8'},both:{1:'#A9DCF5',1.5:'#0379B8',2:'#8A9BD1',3:'#1E3A8A'}};
+const sumv=o=>Object.values(o).reduce((a,b)=>a+b,0);
+const mlab=x=>(+x)+'×';
+function hrsData(who,y){const f=SCN[S.scenario];const ps=who==='both'?['me','partner']:[who];
+  return Array.from({length:12},(_,i)=>{const m=i+1;const r={m,a:{},e:{},b:{},hol:0,known:true,logged:false,cur:false,future:false};
+    for(const p of ps){const k=keyOf(p,y,m),ck=curKey(p);const o=p==='me'?meHrs(S,k,f):ptHrs(S,k,f);
+      for(const t of ['a','e','b'])for(const [x,v] of Object.entries(o[t]))r[t][x]=(r[t][x]||0)+v;
+      r.hol+=o.hol;if(!o.known)r.known=false;if(o.logged)r.logged=true;if(k===ck)r.cur=true;if(k>ck)r.future=true}
+    r.A=sumv(r.a);r.E=sumv(r.e);return r})}
+function hoursCard(){const who=S.hrsWho||S.person,y=YEAR;const rows=hrsData(who,y);const col=HCOL[who];const hc=who==='partner'?'h-pt':'h-me';
+  const types=[...new Set(['1','1.5','2','3',...rows.flatMap(r=>Object.keys(r.a).concat(Object.keys(r.e)))])].sort((a,b)=>a-b);
+  const tA={},tB={};for(const r of rows){for(const [x,v] of Object.entries(r.a))tA[x]=(tA[x]||0)+v;for(const [x,v] of Object.entries(r.b))tB[x]=(tB[x]||0)+v}
+  const A=sumv(tA),E=rows.reduce((s,r)=>s+r.E,0),Bt=sumv(tB);
+  const curM=(rows.find(r=>r.cur)||{}).m||12;const comp=rows.filter(r=>r.A>0&&!r.cur&&!r.future);const avg=comp.length?comp.reduce((s,r)=>s+r.A,0)/comp.length:A;
+  const none={me:{2:'ไม่มีของสง'},partner:{1:'ไม่มีของตา'}}[who]||{};const nm={me:'สง',partner:'ตา',both:'สองคน'}[who];
+  const tiles=types.map(x=>tA[x]?`<div class="ht"><span><i class="sq" style="background:${col[x]||'#8896A5'}"></i>OT ${mlab(x)}</span><b>${hrs(tA[x])} <small>ชม.</small></b><em>${B(tB[x])}</em></div>`:`<div class="ht no"><span>OT ${mlab(x)}</span><b>–</b><em>${none[x]||'ยังไม่มี'}</em></div>`).join('');
+  const mx=Math.max(1,...rows.map(r=>r.A+r.E));const fullA=rows.filter(r=>r.E<0.05&&r.A>0);const maxA=fullA.length>=2?Math.max(...fullA.map(r=>r.A)):-1;const open=S.hrsOpen==null?curM:S.hrsOpen;
+  const w=v=>(v/mx*100).toFixed(1)+'%';const dayT=x=>(who!=='partner'&&x==='1')||(who!=='me'&&+x===+cfg(S,'partner').holMult);
+  const list=rows.map(r=>{const segs=types.filter(x=>r.a[x]).map(x=>`<i style="width:${w(r.a[x])};background:${col[x]||'#8896A5'}"></i>`).join('')+(r.E>0.05?`<i class="${hc}" style="width:${w(r.E)}"></i>`:'');
+    let tot;if(!r.known&&!r.A)tot='<span class="muted">–</span>';else if(!r.A&&r.E>0.05)tot=`<span class="muted" style="font-weight:400">≈ ${Math.round(r.E)}</span>`;
+    else if(r.E>0.05)tot=`${hrs(r.A)} <span class="muted" style="font-weight:400">+~${Math.round(r.E)}</span>`;else tot=hrs(r.A)+(r.A===maxA&&maxA>0?' <small class="mx">สูงสุด</small>':'');
+    const hd=(r.A>0||r.logged)?r.hol:'–';const op=r.m===open;
+    let det='';if(op){const parts=types.filter(x=>r.a[x]).map(x=>`<span><i class="sq" style="background:${col[x]||'#8896A5'}"></i>${mlab(x)} ${hrs(r.a[x])} ชม.${dayT(x)?` (${hrs(r.a[x]/8)} วัน)`:''} · ${B(r.b[x])}</span>`);
+      if(r.E>0.05)parts.push(`<span class="muted">${r.A?'คาดอีก':'คาดประมาณ'} ~${hrs(Math.round(r.E*2)/2)} ชม.</span>`);
+      if(!r.known)parts.push('<span class="muted">รอบนี้มีแต่ยอดเงินจากสลิป ไม่มีจำนวนชั่วโมง</span>');
+      if(!parts.length)parts.push('<span class="muted">ยังไม่มี OT</span>');det=`<div class="hdet">${parts.join('')}</div>`}
+    return `<button type="button" class="hr${r.cur?' now':''}${op?' op':''}" data-act="hrsrow" data-m="${r.m}" aria-expanded="${op}"><span class="mo">${TH_M[r.m-1]}</span><span class="hbar">${segs}</span><b class="tr">${tot}</b><span class="hd tr">${hd}</span></button>${det}`}).join('');
+  return `<section class="card ${who==='partner'?'p-pt':'p-me'}"><div class="row" style="align-items:center"><h2>ชั่วโมง OT</h2>
+  <div class="seg pp" role="group" aria-label="ดูชั่วโมงของ" style="grid-template-columns:repeat(3,minmax(0,1fr))">${[['me','สง','me'],['partner','ตา','pt'],['both','รวม','me']].map(([v,l,c])=>`<button type="button" class="${c}" data-act="hrswho" data-v="${v}" aria-pressed="${who===v}">${l}</button>`).join('')}</div></div>
+  <div class="row"><span class="small muted">${nm} · OT รวมปีนี้ (${TH_M[0]} – ${TH_M[curM-1]})</span><span class="small muted">${B(Bt)}</span></div>
+  <div class="hbig"><b>${hrs(A)}</b><span style="font-weight:600">ชั่วโมง</span><span class="tiny muted" style="margin-left:auto">คาดทั้งปี ≈ ${Math.round(A+E)} · เฉลี่ย ${Math.round(avg)}/เดือน</span></div>
+  <div class="htiles">${tiles}</div>
+  <div><div class="hh"><span>รอบ</span><span>ลายเส้น = คาด</span><span>รวม ชม.</span><span>หยุด</span></div>${list}</div>
+  <div class="tiny muted">${who!=='partner'?'1× มาวันหยุด 8 ชม. (สง) · ':''}1.5× OT หลังเลิกงาน · ${who!=='me'?mlab(cfg(S,'partner').holMult)+' มาวันหยุด (ตา) · ':''}3× OT วันหยุด · “หยุด” = วันที่มาทำวันหยุด · แตะเดือนเพื่อดูแยกประเภท</div></section>`}
 
 /* ---------- slip tab ---------- */
 function renderSlip(){const p=S.person,k=selKey(p);
@@ -498,16 +596,22 @@ function slipCard(k,r){const c=S.cycles[k]||{},s=c.slip,L=cycleLabel(k);const re
   <div class="total"><span>ยอดสุทธิ</span><span class="big">${B(r.net,2)}</span></div>
   ${real&&s.vl!=null&&s.vl!==''?`<div class="tiny muted">ลาพักร้อนคงเหลือ ${esc(s.vl)} วัน</div>`:''}
   <div class="btns">${S.sample&&S.canImg?`<button class="btn" type="button" data-act="slippick" ${S.slipBusy?'disabled':''}>${S.slipBusy?'กำลังอ่านรูป…':'อัปโหลดรูปสลิป'}</button><input id="slipimg" type="file" accept="image/*" hidden>`:''}<button class="btn ghost" type="button" data-act="slipform" data-k="${k}">${real?'แก้สลิป':'กรอกสลิปเอง'}</button>${real?`<button class="btn link" type="button" data-act="slipdel" data-k="${k}">ลบ</button>`:''}</div></section>`}
-function expenseCard(k,r){const set=cfg(S,'me'),c=S.cycles[k]||{};const rec=set.expenses||[];const once=c.oneOff||[];
-  const total=rec.reduce((a,x)=>a+(+x.amount||0),0)+once.reduce((a,x)=>a+(+x.amount||0),0);
+function exAmt(x,k){let v=+x.amount||0;for(const h of (x.hist||[]).slice().sort((a,b)=>a.from<b.from?-1:1))if(h.from<=k)v=+h.amount;return v}
+function exList(k){const c=S.cycles[k]||{};const ov=c.exOv||{};
+  const rec=(cfg(S,'me').expenses||[]).filter(x=>(!x.start||x.start<=k)&&(!x.end||k<x.end)).map(x=>Object.assign({},x,{amt:ov[x.id]!=null?+ov[x.id]:exAmt(x,k),kind:'rec',ovr:ov[x.id]!=null}));
+  const once=(c.oneOff||[]).map(x=>Object.assign({},x,{amt:+x.amount||0,kind:'once'}));return {rec,once}}
+const EXCATS=['ที่พัก · บิล','รถ','ค่ากิน','บัตร · ช้อปปิ้ง','อื่นๆ'];
+const PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+function expenseCard(k,r){const {rec,once}=exList(k);
+  const total=rec.concat(once).reduce((a,x)=>a+x.amt,0);
   const groups={};for(const x of rec)(groups[x.cat||'อื่นๆ']=groups[x.cat||'อื่นๆ']||[]).push(x);
-  const cats=['ที่พัก · บิล','รถ','ค่ากิน','บัตร · ช้อปปิ้ง','อื่นๆ'];const left=r.net-total;
+  const cats=EXCATS;const left=r.net-total;
+  const item=x=>`<button type="button" class="xe" data-act="exedit" data-k="${k}" data-id="${esc(x.id)}" data-kind="${x.kind}" aria-label="แก้ ${esc(x.name)} ${B(x.amt)}"><span>${esc(x.name)}${x.ovr?'<span class="tag">แก้เฉพาะรอบนี้</span>':''}</span><span class="am">${B(x.amt)}${PEN}</span></button>`;
   return `<section class="card"><div class="row"><h2>รายจ่ายรอบนี้</h2><b>${B(total)}</b></div>
   <div class="calc"><div class="total" style="border:0;padding:0"><span>คงเหลือ (สุทธิ − รายจ่าย)</span><span class="big ${left<0?'badc':''}">${B(left,2)}</span></div></div>
-  <details><summary class="small">รายการ (${rec.length+once.length})</summary>
-  ${Object.entries(groups).map(([g,xs])=>`<div class="sec">${esc(g)} · ${B(xs.reduce((a,x)=>a+(+x.amount||0),0))}</div>${xs.map(x=>`<div class="xrow"><span>${esc(x.name)}</span><span>${B(x.amount)} <button class="xbtn" type="button" data-act="exdel" data-id="${esc(x.id)}" aria-label="ลบ ${esc(x.name)}">ลบ</button></span></div>`).join('')}`).join('')}
-  ${once.length?`<div class="sec">เฉพาะรอบนี้</div>${once.map(x=>`<div class="xrow"><span>${esc(x.name)}</span><span>${B(x.amount)} <button class="xbtn" type="button" data-act="exdel1" data-k="${k}" data-id="${esc(x.id)}" aria-label="ลบ ${esc(x.name)}">ลบ</button></span></div>`).join('')}`:''}
-  ${!rec.length&&!once.length?'<div class="note">ยังไม่มีรายจ่าย เพิ่มรายการแรกด้านล่าง</div>':''}</details>
+  <div>${Object.entries(groups).map(([g,xs])=>`<div class="sec row"><span>${esc(g)}</span><span>${B(xs.reduce((a,x)=>a+x.amt,0))}</span></div>${xs.map(item).join('')}`).join('')}
+  ${once.length?`<div class="sec row"><span>เฉพาะรอบนี้</span><span>${B(once.reduce((a,x)=>a+x.amt,0))}</span></div>${once.map(item).join('')}`:''}
+  ${!rec.length&&!once.length?'<div class="note">ยังไม่มีรายจ่าย เพิ่มรายการแรกด้านล่าง</div>':'<div class="tiny muted" style="padding-top:6px">แตะรายการเพื่อแก้จำนวนเงิน</div>'}</div>
   <div style="border:1px dashed var(--ac-mid);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px"><b class="small">เพิ่มรายจ่าย</b>
   <div class="fields"><label class="field full">ชื่อรายการ<input id="ex-name" type="text" placeholder="เช่น ค่ามือถือ"></label><label class="field">จำนวนเงิน<input id="ex-amt" type="number" inputmode="decimal" placeholder="0"></label>
   <label class="field">หมวด<select id="ex-cat">${cats.map(x=>`<option>${x}</option>`).join('')}</select></label><label class="field full">ความถี่<select id="ex-rec"><option value="1">ทุกเดือน</option><option value="0">เฉพาะรอบนี้</option></select></label></div>
@@ -542,7 +646,7 @@ const ICON={cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
  slip:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>',
  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>'};
 function tabBar(){const L={cal:'ปฏิทิน',sum:'สรุป',slip:S.person==='me'?'สลิป':'สรุปรอบ',set:'ตั้งค่า'};return `<div class="tabbar"><nav aria-label="เมนู">${TABS.map(t=>`<a href="#${t}" ${S.tab===t?'aria-current="page"':''}>${ICON[t]}${L[t]}</a>`).join('')}</nav></div>`}
-const KEEP=['paste','ex-name','ex-amt','ex-cat','ex-rec','cust','cn-u','cn-k'];
+const KEEP=['ex-e-name','ex-e-amt','ex-e-cat','paste','ex-name','ex-amt','ex-cat','ex-rec','cust','cn-u','cn-k'];
 function render(){const app=document.getElementById('app');const keep={};for(const id of KEEP){const el=document.getElementById(id);if(el)keep[id]=el.value}
   const det=[...document.querySelectorAll('details')].map(d=>d.open);const sy=window.scrollY;
   let body='';try{body=S.tab==='cal'?renderCal():S.tab==='sum'?renderSum():S.tab==='slip'?renderSlip():renderSet()}catch(e){console.error(e);body=`<div class="banner">แสดงผลไม่ได้: ${esc(e.message)}</div>`}
@@ -585,9 +689,29 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
     if(!v.gross&&v.salary!=null)v.gross=(v.salary||0)+(v.travel||0)+(v.ot||0)+(v.meal||0);S.slipForm=null;await saveCycle(k,c=>{c.slip=v});toast('บันทึกสลิปแล้ว');break}
   case 'slipdel':await saveCycle(t.dataset.k,c=>{delete c.slip});toast('ลบสลิปแล้ว');break;
   case 'exadd':{const name=((document.getElementById('ex-name')||{}).value||'').trim();const amt=num('ex-amt');if(!name||amt==null){toast('ใส่ชื่อรายการและจำนวนเงิน');break}
-    const cat=document.getElementById('ex-cat').value,rec=document.getElementById('ex-rec').value==='1';const item={id:'x'+Date.now().toString(36),name,amount:amt,cat};
+    const cat=document.getElementById('ex-cat').value,rec=document.getElementById('ex-rec').value==='1';const item={id:'x'+Date.now().toString(36),name,amount:amt,cat};if(rec)item.start=t.dataset.k;
     document.getElementById('ex-name').value='';document.getElementById('ex-amt').value='';
     if(rec)await saveSettings('me',{expenses:[...(cfg(S,'me').expenses||[]),item]},true);else await saveCycle(t.dataset.k,c=>{c.oneOff=[...(c.oneOff||[]),item]});toast('เพิ่มรายจ่ายแล้ว');break}
+  case 'hrswho':S.hrsWho=t.dataset.v;S.hrsOpen=null;render();break;
+  case 'hrsrow':{const m=+t.dataset.m;const ck=hrsData(S.hrsWho||S.person,YEAR).find(r=>r.cur);const cur=S.hrsOpen==null?(ck?ck.m:12):S.hrsOpen;S.hrsOpen=cur===m?0:m;render();break}
+  case 'exedit':S.sheet={ex:{k:t.dataset.k,id:t.dataset.id,kind:t.dataset.kind,scope:'fwd'}};render();setTimeout(()=>{const b=document.getElementById('sheetclose');b&&b.focus({preventScroll:true})},30);break;
+  case 'exscope':if(S.sheet&&S.sheet.ex){S.sheet.ex.scope=t.dataset.v;render()}break;
+  case 'exstep':{const el=document.getElementById('ex-e-amt');if(el)el.value=Math.max(0,(+el.value||0)+(+t.dataset.v));break}
+  case 'exsave':{const sh=S.sheet&&S.sheet.ex;if(!sh)break;const name=((document.getElementById('ex-e-name')||{}).value||'').trim();const amt=num('ex-e-amt');
+    if(!name||amt==null||amt<0){toast('ใส่ชื่อรายการและจำนวนเงิน');break}const cat=document.getElementById('ex-e-cat').value,k=sh.k;S.sheet=null;
+    if(sh.kind==='once')await saveCycle(k,c=>{c.oneOff=(c.oneOff||[]).map(x=>x.id===sh.id?Object.assign({},x,{name,amount:amt,cat}):x)});
+    else{const one=sh.scope==='once';
+      const list=(cfg(S,'me').expenses||[]).map(x=>{if(x.id!==sh.id)return x;const y=Object.assign({},x,{name,cat});
+        if(!one){const h=(x.hist||[]).filter(z=>z.from<k);if(x.start&&x.start>=k)y.amount=amt;else if(exAmt(Object.assign({},x,{hist:h}),k)!==amt)h.push({from:k,amount:amt});if(h.length)y.hist=h;else delete y.hist}
+        return y});
+      await saveSettings('me',{expenses:list},true);
+      const ov=Object.assign({},(S.cycles[k]||{}).exOv||{});const had=ov[sh.id]!=null;if(one)ov[sh.id]=amt;else delete ov[sh.id];
+      if(one||had)await saveCycle(k,c=>{if(Object.keys(ov).length)c.exOv=ov;else delete c.exOv})}
+    toast('บันทึกแล้ว');break}
+  case 'exremove':{const sh=S.sheet&&S.sheet.ex;if(!sh)break;S.sheet=null;
+    if(sh.kind==='once')await saveCycle(sh.k,c=>{c.oneOff=(c.oneOff||[]).filter(x=>x.id!==sh.id)});
+    else{const list=(cfg(S,'me').expenses||[]).flatMap(x=>x.id!==sh.id?[x]:(x.start&&x.start>=sh.k)?[]:[Object.assign({},x,{end:sh.k})]);await saveSettings('me',{expenses:list},true)}
+    toast('ลบแล้ว');break}
   case 'exdel':await saveSettings('me',{expenses:(cfg(S,'me').expenses||[]).filter(x=>x.id!==t.dataset.id)},true);toast('ลบแล้ว');break;
   case 'exdel1':await saveCycle(t.dataset.k,c=>{c.oneOff=(c.oneOff||[]).filter(x=>x.id!==t.dataset.id)});toast('ลบแล้ว');break;
   case 'mesave':{const o={};const m={cycleStart:'ms-cs',travel:'ms-tr',mealPerOtDay:'ms-meal',mealAdjust:'ms-madj',holidayMeal:'ms-hmeal',pfRate:'ms-pf',sso:'ms-sso',loan:'ms-loan',otherDeduct:'ms-oth',taxAllowance:'ms-tax',extraTaxable:'ms-extra'};
