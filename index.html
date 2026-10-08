@@ -192,7 +192,7 @@ const r2=x=>Math.round(x*100)/100;
 
 const DEF_HOL=[['2026-10-13','วันนวมินทรมหาราช'],['2026-10-23','วันปิยมหาราช'],['2026-12-05','วันพ่อแห่งชาติ'],['2026-12-07','ชดเชยวันพ่อแห่งชาติ'],['2026-12-10','วันรัฐธรรมนูญ'],['2026-12-31','วันสิ้นปี']];
 const DEF={
-  me:{salaryFrom:[{ym:'2026-01',v:23045},{ym:'2026-04',v:24660}],cycleStart:16,travel:500,mealPerOtDay:60,mealAdjust:150,holidayMeal:0,
+  me:{salaryFrom:[{ym:'2026-01',v:23045},{ym:'2026-04',v:24660}],cycleStart:16,travel:500,lunch:30,otMeal:30,
       pfRate:15,sso:875,loan:390,otherDeduct:0,extraTaxable:7000,taxAllowance:0,holidays:DEF_HOL,expenses:[]},
   partner:{wage:400,cycleStart:21,ot15:1.5,ot3:3,travel:25,meal:35,skill:45,diligence:300,loseOn:['sick'],ssoRate:5,ssoCap:875,
       holMult:2,paidHoliday:true,holidays:DEF_HOL}
@@ -215,8 +215,8 @@ function getDay(S,p,ds){const k=cycleOf(S,p,parseD(ds));const c=S.cycles[k];retu
 /* ---------- me ---------- */
 function meDay(S,e,sal){const h=sal/240,d=sal/30,c=cfg(S,'me');
   if(!e)return null;
-  if(e.s==='work'){const o=+e.ot||0;return {otPay:o*h*1.5,meal:o>0?c.mealPerOtDay:0,hours:o,otDays:o>0?1:0,otH:o,holDays:0,h3:0}}
-  if(e.s==='hol'){const o=+e.ot||0;return {otPay:d+o*h*3,meal:c.holidayMeal,hours:8+o,otDays:0,otH:0,holDays:1,h3:o}}
+  if(e.s==='work'){const o=+e.ot||0;return {otPay:o*h*1.5,meal:(+c.lunch||0)+(o>0?(+c.otMeal||0):0),hours:o,otDays:o>0?1:0,otH:o,holDays:0,h3:0}}
+  if(e.s==='hol'){const o=+e.ot||0;return {otPay:d+o*h*3,meal:o>0?(+c.otMeal||0):0,hours:8+o,otDays:0,otH:0,holDays:1,h3:o}}
   return {otPay:0,meal:0,hours:0,otDays:0,otH:0,holDays:0,h3:0}}
 function meCounts(S,k){const c=S.cycles[k];if(!c)return null;
   const ds=datesIn(S,k);let wd=0,od=0;for(const x of ds){if(isOffDay(S,'me',x))od++;else wd++}
@@ -231,8 +231,8 @@ function meStats(S,curKey){let wd=0,od=0,otDays=0,otH=0,hol=0,h3=0,n=0;
   if(!wd)return {pOt:0.8,avgOt:2.5,pHol:0.35,avgH3:0.5};
   return {pOt:otDays/wd,avgOt:otDays?otH/otDays:2.5,pHol:od?hol/od:0,avgH3:hol?h3/hol:0}}
 function meExpected(S,ds,sal,st,f){const h=sal/240,d=sal/30,c=cfg(S,'me');
-  if(isOffDay(S,'me',ds)){const p=st.pHol*f;return {otPay:p*(d+st.avgH3*h*3),meal:p*c.holidayMeal,hours:p*(8+st.avgH3),likely:p>=0.5?'hol':null}}
-  const p=Math.min(1,st.pOt*f);return {otPay:p*st.avgOt*h*1.5,meal:p*c.mealPerOtDay,hours:p*st.avgOt,likely:st.pOt>=0.5?st.avgOt:null}}
+  if(isOffDay(S,'me',ds)){const p=st.pHol*f;return {otPay:p*(d+st.avgH3*h*3),meal:p*Math.min(1,st.avgH3/2.5)*(+c.otMeal||0),hours:p*(8+st.avgH3),likely:p>=0.5?'hol':null}}
+  const p=Math.min(1,st.pOt*f);return {otPay:p*st.avgOt*h*1.5,meal:(+c.lunch||0)+p*(+c.otMeal||0),hours:p*st.avgOt,likely:st.pOt>=0.5?st.avgOt:null}}
 function meCycleBase(S,k,todayStr,f){
   const c=S.cycles[k]||{},set=cfg(S,'me'),sal=salaryFor(S,k);
   const base={key:k,salary:sal,travel:set.travel};
@@ -244,7 +244,7 @@ function meCycleBase(S,k,todayStr,f){
     if(e){const r=meDay(S,e,sal);otA+=r.otPay;mealA+=r.meal;hA+=r.hours;logged++}
     else if(ds<=last&&isOffDay(S,'me',ds)){/* past day off, not worked */}
     else{const r=meExpected(S,ds,sal,st,f);otE+=r.otPay;mealE+=r.meal;hE+=r.hours}}
-  const adj=(mealA+mealE)>0?set.mealAdjust:0;
+  const adj=0;
   const otPay=otA+otE,meal=mealA+mealE+adj;
   return Object.assign(base,{src:logged?'mixed':'forecast',otPay,meal,other:0,gross:sal+set.travel+otPay+meal,otActual:otA,otExp:otE,hours:hA,hoursExp:hE,logged})}
 function thTax(n){const b=[[150000,0],[300000,.05],[500000,.10],[750000,.15],[1000000,.20],[2000000,.25],[5000000,.30],[Infinity,.35]];let t=0,prev=0;for(const [cap,r] of b){if(n>prev)t+=(Math.min(n,cap)-prev)*r;prev=cap}return t}
@@ -495,8 +495,8 @@ function sheetHTML(){if(!S.sheet)return '';if(S.sheet.ex)return exSheetHTML();co
     body=`${warn?`<div class="note badc">บันทึก${mode==='sick'?'ลาป่วย':'ลากิจ'}แล้ว เบี้ยขยัน ${B(cfg(S,'partner').diligence)} รอบนี้จะหลุด</div>`:''}<button class="btn" type="button" data-act="saveoff" data-v="${mode}" aria-pressed="${!!(e&&e.s===mode)}">${e&&e.s===mode?'✓ บันทึกแล้ว':'บันทึก'+opts.find(o=>o[0]===mode)[1].replace(' / ','/')}</button>`}
   let res='';
   if(e){if(p==='me'){const sal=salaryFor(S,k);const r=meDay(S,e,sal);const h=sal/240;
-      if(e.s==='work')res=`<div class="line"><span>OT ${hrs(+e.ot||0)} ชม. × ${B(h*1.5,2)}</span><span>${B(r.otPay,2)}</span></div><div class="line"><span>ค่าอาหาร</span><span>${B(r.meal,2)}</span></div>`;
-      else if(e.s==='hol')res=`<div class="line"><span>มาวันหยุด 1 วัน × 1</span><span>${B(sal/30,2)}</span></div><div class="line"><span>OT ${hrs(+e.ot||0)} ชม. × ${B(h*3,2)}</span><span>${B((+e.ot||0)*h*3,2)}</span></div>`;
+      if(e.s==='work')res=`<div class="line"><span>OT ${hrs(+e.ot||0)} ชม. × ${B(h*1.5,2)}</span><span>${B(r.otPay,2)}</span></div><div class="line"><span>ค่าอาหาร (กลางวัน${+e.ot>0?' + OT':''})</span><span>${B(r.meal,2)}</span></div>`;
+      else if(e.s==='hol')res=`<div class="line"><span>มาวันหยุด 1 วัน × 1</span><span>${B(sal/30,2)}</span></div><div class="line"><span>OT ${hrs(+e.ot||0)} ชม. × ${B(h*3,2)}</span><span>${B((+e.ot||0)*h*3,2)}</span></div>${r.meal?`<div class="line"><span>ค่าอาหาร OT</span><span>${B(r.meal,2)}</span></div>`:''}`;
       res+=`<div class="total"><span>ได้วันนั้น</span><span class="big">${B(r.otPay+r.meal,2)}</span></div>`}
     else{const r=ptDay(S,e,ds);const c=cfg(S,'partner');
       if(r.worked)res=`<div class="line"><span>ค่าแรง${e.s==='hol'?' (วันหยุด '+c.holMult+'×)':''}</span><span>${B(r.wage)}</span></div><div class="line"><span>OT ${hrs(r.hours)} ชม.</span><span>${B(r.ot,2)}</span></div><div class="line"><span>รถ ${c.travel} · อาหาร ${c.meal} · ทักษะ ${c.skill}</span><span>${B(r.allow)}</span></div>`;
@@ -626,8 +626,8 @@ function pasteCard(){const r=S.pasteRes;
 function renderSet(){const p=S.person;const N=(id,l,v,st='1')=>`<label class="field">${l}<input id="${id}" type="number" step="${st}" inputmode="decimal" value="${esc(v)}"></label>`;
   let f;
   if(p==='me'){const s=cfg(S,'me');const salTxt=s.salaryFrom.map(x=>`${x.ym} ${x.v}`).join('\n');const holTxt=(s.holidays||[]).map(h=>h.join(' ')).join('\n');
-    f=`<section class="card"><h2>สูตรของสง</h2><div class="fields">${N('ms-cs','ตัดรอบทุกวันที่',s.cycleStart-1)}${N('ms-tr','ค่าเดินทาง/เดือน',s.travel)}${N('ms-meal','ค่าอาหาร/วันที่มี OT',s.mealPerOtDay)}${N('ms-madj','ปรับค่าอาหาร/รอบ',s.mealAdjust)}
-    ${N('ms-hmeal','ค่าอาหารวันมาวันหยุด',s.holidayMeal)}${N('ms-pf','กองทุน % เงินเดือน',s.pfRate,'0.5')}${N('ms-sso','ประกันสังคม/เดือน',s.sso)}${N('ms-loan','กยศ./เดือน',s.loan)}
+    f=`<section class="card"><h2>สูตรของสง</h2><div class="fields">${N('ms-cs','ตัดรอบทุกวันที่',s.cycleStart-1)}${N('ms-tr','ค่าเดินทาง/เดือน',s.travel)}${N('ms-lunch','ค่าอาหารกลางวัน/วันทำงาน',s.lunch)}${N('ms-otmeal','ค่าอาหาร OT/วันที่มี OT',s.otMeal)}
+    ${N('ms-pf','กองทุน % เงินเดือน',s.pfRate,'0.5')}${N('ms-sso','ประกันสังคม/เดือน',s.sso)}${N('ms-loan','กยศ./เดือน',s.loan)}
     ${N('ms-oth','หักอื่นๆ/เดือน',s.otherDeduct)}${N('ms-tax','ลดหย่อนภาษีเพิ่ม/ปี',s.taxAllowance)}${N('ms-extra','เงินก้อนพิเศษที่เสียภาษี',s.extraTaxable)}
     <label class="field full">เงินเดือนตามช่วง (ปี-เดือน จำนวน)<textarea id="ms-sal" rows="3">${esc(salTxt)}</textarea></label>
     <label class="field full">วันหยุด (ปี-เดือน-วัน ชื่อ) ใช้ร่วมกันสองคน<textarea id="ms-hol" rows="6">${esc(holTxt)}</textarea></label></div>
@@ -714,7 +714,7 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
     toast('ลบแล้ว');break}
   case 'exdel':await saveSettings('me',{expenses:(cfg(S,'me').expenses||[]).filter(x=>x.id!==t.dataset.id)},true);toast('ลบแล้ว');break;
   case 'exdel1':await saveCycle(t.dataset.k,c=>{c.oneOff=(c.oneOff||[]).filter(x=>x.id!==t.dataset.id)});toast('ลบแล้ว');break;
-  case 'mesave':{const o={};const m={cycleStart:'ms-cs',travel:'ms-tr',mealPerOtDay:'ms-meal',mealAdjust:'ms-madj',holidayMeal:'ms-hmeal',pfRate:'ms-pf',sso:'ms-sso',loan:'ms-loan',otherDeduct:'ms-oth',taxAllowance:'ms-tax',extraTaxable:'ms-extra'};
+  case 'mesave':{const o={};const m={cycleStart:'ms-cs',travel:'ms-tr',lunch:'ms-lunch',otMeal:'ms-otmeal',pfRate:'ms-pf',sso:'ms-sso',loan:'ms-loan',otherDeduct:'ms-oth',taxAllowance:'ms-tax',extraTaxable:'ms-extra'};
     for(const [k,id] of Object.entries(m)){const v=num(id);if(v!=null)o[k]=v}
     if(o.cycleStart!=null){if(o.cycleStart<1||o.cycleStart>27){toast('วันตัดรอบต้องอยู่ระหว่าง 1–27');break}o.cycleStart+=1}
     const sal=(document.getElementById('ms-sal').value||'').split('\n').map(l=>l.trim().split(/\s+/)).filter(x=>/^\d{4}-\d{2}$/.test(x[0])&&+x[1]>0).map(x=>({ym:x[0],v:+x[1]}));if(sal.length)o.salaryFrom=sal;
