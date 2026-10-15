@@ -473,7 +473,7 @@ function renderCal(){const p=S.person,k=selKey(p);let chips;
 /* ---------- day sheet ---------- */
 function exSheetHTML(){const sh=S.sheet.ex,k=sh.k;const {rec,once}=exList(k);const x=(sh.kind==='once'?once:rec).find(z=>z.id===sh.id);if(!x)return '';
   const L=cycleLabel(k);const base=sh.kind==='rec'?exAmt(x,k):x.amt;const scope=sh.scope||'fwd';
-  return `<div class="scrim" data-act="close"></div><div class="sheet p-me" role="dialog" aria-modal="true" aria-label="แก้รายจ่าย ${esc(x.name)}"><div class="in"><div class="grab"></div>
+  return `<div class="scrim" data-act="close"></div><div class="sheet ${PCLS(splitKey(k).p)}" role="dialog" aria-modal="true" aria-label="แก้รายจ่าย ${esc(x.name)}"><div class="in"><div class="grab"></div>
   <div class="row" style="align-items:center"><div><b style="font-size:20px">แก้รายจ่าย</b><div class="tiny muted">${esc(x.cat||'อื่นๆ')} · ${sh.kind==='rec'?'ทุกเดือน':'เฉพาะ'+L.name}</div></div><button class="x" type="button" data-act="close" aria-label="ปิด" id="sheetclose">✕</button></div>
   <label class="field">ชื่อรายการ<input id="ex-e-name" type="text" value="${esc(x.name)}"></label>
   <div class="field">จำนวนเงิน<div class="stepper"><button type="button" data-act="exstep" data-v="-100" aria-label="ลด 100 บาท">−100</button><input id="ex-e-amt" type="number" inputmode="decimal" min="0" step="1" value="${esc(x.amt)}" aria-label="จำนวนเงิน"><button type="button" data-act="exstep" data-v="100" aria-label="เพิ่ม 100 บาท">+100</button></div>
@@ -526,6 +526,7 @@ function renderSum(){
   <section class="card"><div class="row"><h2>OT รายเดือน</h2><span class="tiny muted">ลายเส้น = คาดการณ์</span></div><div class="bars">${bars}</div>
   <div class="months">${M.rows.map(r=>`<span class="${r.key===ck?'now':''}">${TH_M[splitKey(r.key).m-1]}</span>`).join('')}</div>
   <div class="legend"><span><i class="sw" style="background:var(--me)"></i>สง</span><span><i class="sw" style="background:var(--pt)"></i>ตา (ติกครบ)</span><span><i class="sw h-pt"></i>ตา (ประมาณ)</span></div></section>
+  ${leftCard(M,P)}
   <section class="card"><div class="li"><span>กองทุนสำรองฯ ของสง (เงินเก็บ)</span><b>${B(M.pf)}</b></div><div class="li"><span>หักทั้งปี (ประกันสังคม · กยศ. · ภาษี ≈ ${B(M.tax)})</span><b>−${B(dedNoPf)}</b></div>
   ${(()=>{let ls=null;for(const r of M.rows){const s=(S.cycles[r.key]||{}).slip;if(s&&s.gross)ls={k:r.key,s}}return ls&&ls.s.ytdIncome?`<div class="li"><span>รายได้สะสมตามสลิป${TH_M[splitKey(ls.k).m-1]}</span><b>${B(ls.s.ytdIncome,2)}</b></div>`:''})()}</section>
   <details class="card"><summary>ดูรายรอบ · สง</summary><div class="tw"><table><thead><tr><th>รอบ</th><th>รายได้</th><th>OT</th><th>สุทธิ</th><th>ที่มา</th></tr></thead><tbody>${rows(M,'me')}<tr class="sum p-me"><td>รวม</td><td>${fmt(M.gross)}</td><td>${fmt(M.ot)}</td><td>${fmt(M.net)}</td><td></td></tr></tbody></table></div></details>
@@ -569,17 +570,24 @@ function hoursCard(){const who=S.hrsWho||S.person,y=YEAR;const rows=hrsData(who,
   <div><div class="hh"><span>รอบ</span><span>ลายเส้น = คาด</span><span>รวม ชม.</span><span>หยุด</span></div>${list}</div>
   <div class="tiny muted">${who!=='partner'?'1× มาวันหยุด 8 ชม. (สง) · ':''}1.5× OT หลังเลิกงาน · ${who!=='me'?mlab(cfg(S,'partner').holMult)+' มาวันหยุด (ตา) · ':''}3× OT วันหยุด · “หยุด” = วันที่มาทำวันหยุด · แตะเดือนเพื่อดูแยกประเภท</div></section>`}
 
+function exTotal(k){const {rec,once}=exList(k);return rec.concat(once).reduce((a,x)=>a+x.amt,0)}
+function leftCard(M,P){const km=curKey('me'),kp=curKey('partner');const rm=M.rows.find(r=>r.key===km),rp=P.rows.find(r=>r.key===kp);if(!rm||!rp)return '';
+  const em=exTotal(km),ep=exTotal(kp);if(!em&&!ep)return '';const lm=rm.net-em,lp=rp.net-ep;
+  const li=(n,net,ex,left,c)=>`<div class="li"><span><i class="sq" style="background:${c};margin-right:6px"></i>${n} <span class="tiny muted">สุทธิ ${B(net)} − รายจ่าย ${B(ex)}</span></span><b class="${left<0?'badc':''}">${B(left)}</b></div>`;
+  return `<section class="card"><div class="row"><h2>คงเหลือรอบนี้</h2><span class="tiny muted">หลังหักรายจ่าย</span></div><div>${li('สง',rm.net,em,lm,'var(--me)')}${li('ตา',rp.net,ep,lp,'var(--pt)')}
+  <div class="li b2"><span>คงเหลือรวมสองคน</span><b class="big ${lm+lp<0?'badc':''}">${B(lm+lp)}</b></div></div></section>`}
 /* ---------- slip tab ---------- */
 function renderSlip(){const p=S.person,k=selKey(p);
   if(p==='me'){const Y=meYear(S,splitKey(k).y,TODAY,S.scenario);const r=Y.rows.find(x=>x.key===k);return `${topBar('สลิป & รายจ่าย',personSeg())}${banner()}${cycNav(p)}${slipCard(k,r)}${expenseCard(k,r)}${pasteCard()}`}
   const r=ptCycle(S,k,TODAY,SCN[S.scenario]);const c=S.cycles[k]||{},set=cfg(S,'partner');const dil=c.diligence||'auto';
   const days=Object.entries(c.days||{}).sort((a,b)=>a[0]<b[0]?1:-1);
-  return `${topBar('สรุปรอบ',personSeg())}${banner()}${cycNav(p)}
+  return `${topBar('สรุปรอบ & รายจ่าย',personSeg())}${banner()}${cycNav(p)}
   <section class="card"><div class="row"><h2>${cycleLabel(k).name}</h2><span class="${r.src==='actual'?'pill-good':'pill'}">${r.src==='actual'?'ติกครบ':r.src==='mixed'?'ติก+คาด':'คาดการณ์'}</span></div>
   <div class="line"><span>ค่าแรง${r.days?' · มา '+r.days+' วัน':''}</span><span>${B(r.wage,2)}</span></div><div class="line"><span>OT${r.hours?' '+hrs(r.hours)+' ชม.':''}</span><span>${B(r.ot,2)}</span></div><div class="line"><span>เบี้ยรายวัน (รถ · อาหาร · ทักษะ)</span><span>${B(r.allow,2)}</span></div>
   <div class="line ${r.dil?'good':'badc'}"><span>เบี้ยขยัน</span><span>${B(r.dil)}</span></div><div class="total"><span>รวมรายได้</span><span>${B(r.gross,2)}</span></div>
   <div class="line"><span>ประกันสังคม ${set.ssoRate}%</span><span>−${B(r.sso,2)}</span></div><div class="total"><span>ยอดสุทธิ</span><span class="big">${B(r.net,2)}</span></div>
   <div class="small muted">เบี้ยขยันรอบนี้</div><div class="seg" role="group" aria-label="เบี้ยขยันรอบนี้" style="grid-template-columns:repeat(3,minmax(0,1fr))">${[['auto','อัตโนมัติ'],['yes','ได้'],['no','ไม่ได้']].map(([v,l])=>`<button type="button" data-act="dil" data-k="${k}" data-v="${v}" aria-pressed="${dil===v}">${l}</button>`).join('')}</div></section>
+  ${expenseCard(k,r)}
   <section class="card"><h2>บันทึกรายวัน</h2><div class="tw"><table><thead><tr><th>วันที่</th><th>สถานะ</th><th>OT</th><th>รวม</th></tr></thead><tbody>
   ${days.length?days.map(([ds,e])=>{const x=ptDay(S,e,ds);return `<tr><td>${thDate(ds)}</td><td>${({work:'มา',hol:'มาวันหยุด',sick:'ลาป่วย',leave:'ลากิจ',off:'หยุด'})[e.s]||''}</td><td>${x.hours?hrs(x.hours):'–'}</td><td><b>${fmt(x.wage+x.ot+x.allow)}</b></td></tr>`}).join(''):'<tr><td colspan="4" style="color:var(--muted);white-space:normal">ยังไม่มีบันทึกในรอบนี้ ติกวันแรกได้จากหน้าปฏิทิน</td></tr>'}
   </tbody></table></div></section>`}
@@ -598,7 +606,7 @@ function slipCard(k,r){const c=S.cycles[k]||{},s=c.slip,L=cycleLabel(k);const re
   <div class="btns">${S.sample&&S.canImg?`<button class="btn" type="button" data-act="slippick" ${S.slipBusy?'disabled':''}>${S.slipBusy?'กำลังอ่านรูป…':'อัปโหลดรูปสลิป'}</button><input id="slipimg" type="file" accept="image/*" hidden>`:''}<button class="btn ghost" type="button" data-act="slipform" data-k="${k}">${real?'แก้สลิป':'กรอกสลิปเอง'}</button>${real?`<button class="btn link" type="button" data-act="slipdel" data-k="${k}">ลบ</button>`:''}</div></section>`}
 function exAmt(x,k){let v=+x.amount||0;for(const h of (x.hist||[]).slice().sort((a,b)=>a.from<b.from?-1:1))if(h.from<=k)v=+h.amount;return v}
 function exList(k){const c=S.cycles[k]||{};const ov=c.exOv||{};
-  const rec=(cfg(S,'me').expenses||[]).filter(x=>(!x.start||x.start<=k)&&(!x.end||k<x.end)).map(x=>Object.assign({},x,{amt:ov[x.id]!=null?+ov[x.id]:exAmt(x,k),kind:'rec',ovr:ov[x.id]!=null}));
+  const rec=(cfg(S,splitKey(k).p).expenses||[]).filter(x=>(!x.start||x.start<=k)&&(!x.end||k<x.end)).map(x=>Object.assign({},x,{amt:ov[x.id]!=null?+ov[x.id]:exAmt(x,k),kind:'rec',ovr:ov[x.id]!=null}));
   const once=(c.oneOff||[]).map(x=>Object.assign({},x,{amt:+x.amount||0,kind:'once'}));return {rec,once}}
 const EXCATS=['ที่พัก · บิล','รถ','ค่ากิน','บัตร · ช้อปปิ้ง','อื่นๆ'];
 const PEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
@@ -607,7 +615,7 @@ function expenseCard(k,r){const {rec,once}=exList(k);
   const groups={};for(const x of rec)(groups[x.cat||'อื่นๆ']=groups[x.cat||'อื่นๆ']||[]).push(x);
   const cats=EXCATS;const left=r.net-total;
   const item=x=>`<button type="button" class="xe" data-act="exedit" data-k="${k}" data-id="${esc(x.id)}" data-kind="${x.kind}" aria-label="แก้ ${esc(x.name)} ${B(x.amt)}"><span>${esc(x.name)}${x.ovr?'<span class="tag">แก้เฉพาะรอบนี้</span>':''}</span><span class="am">${B(x.amt)}${PEN}</span></button>`;
-  return `<section class="card"><div class="row"><h2>รายจ่ายรอบนี้</h2><b>${B(total)}</b></div>
+  return `<section class="card"><div class="row"><h2>${splitKey(k).p==='me'?'รายจ่ายรอบนี้':'รายจ่ายของตา'}</h2><b>${B(total)}</b></div>
   <div class="calc"><div class="total" style="border:0;padding:0"><span>คงเหลือ (สุทธิ − รายจ่าย)</span><span class="big ${left<0?'badc':''}">${B(left,2)}</span></div></div>
   <div>${Object.entries(groups).map(([g,xs])=>`<div class="sec row"><span>${esc(g)}</span><span>${B(xs.reduce((a,x)=>a+x.amt,0))}</span></div>${xs.map(item).join('')}`).join('')}
   ${once.length?`<div class="sec row"><span>เฉพาะรอบนี้</span><span>${B(once.reduce((a,x)=>a+x.amt,0))}</span></div>${once.map(item).join('')}`:''}
@@ -691,7 +699,7 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
   case 'exadd':{const name=((document.getElementById('ex-name')||{}).value||'').trim();const amt=num('ex-amt');if(!name||amt==null){toast('ใส่ชื่อรายการและจำนวนเงิน');break}
     const cat=document.getElementById('ex-cat').value,rec=document.getElementById('ex-rec').value==='1';const item={id:'x'+Date.now().toString(36),name,amount:amt,cat};if(rec)item.start=t.dataset.k;
     document.getElementById('ex-name').value='';document.getElementById('ex-amt').value='';
-    if(rec)await saveSettings('me',{expenses:[...(cfg(S,'me').expenses||[]),item]},true);else await saveCycle(t.dataset.k,c=>{c.oneOff=[...(c.oneOff||[]),item]});toast('เพิ่มรายจ่ายแล้ว');break}
+    if(rec){const xp=splitKey(t.dataset.k).p;await saveSettings(xp,{expenses:[...(cfg(S,xp).expenses||[]),item]},true)}else await saveCycle(t.dataset.k,c=>{c.oneOff=[...(c.oneOff||[]),item]});toast('เพิ่มรายจ่ายแล้ว');break}
   case 'hrswho':S.hrsWho=t.dataset.v;S.hrsOpen=null;render();break;
   case 'hrsrow':{const m=+t.dataset.m;const ck=hrsData(S.hrsWho||S.person,YEAR).find(r=>r.cur);const cur=S.hrsOpen==null?(ck?ck.m:12):S.hrsOpen;S.hrsOpen=cur===m?0:m;render();break}
   case 'exedit':S.sheet={ex:{k:t.dataset.k,id:t.dataset.id,kind:t.dataset.kind,scope:'fwd'}};render();setTimeout(()=>{const b=document.getElementById('sheetclose');b&&b.focus({preventScroll:true})},30);break;
@@ -701,16 +709,16 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
     if(!name||amt==null||amt<0){toast('ใส่ชื่อรายการและจำนวนเงิน');break}const cat=document.getElementById('ex-e-cat').value,k=sh.k;S.sheet=null;
     if(sh.kind==='once')await saveCycle(k,c=>{c.oneOff=(c.oneOff||[]).map(x=>x.id===sh.id?Object.assign({},x,{name,amount:amt,cat}):x)});
     else{const one=sh.scope==='once';
-      const list=(cfg(S,'me').expenses||[]).map(x=>{if(x.id!==sh.id)return x;const y=Object.assign({},x,{name,cat});
+      const list=(cfg(S,splitKey(k).p).expenses||[]).map(x=>{if(x.id!==sh.id)return x;const y=Object.assign({},x,{name,cat});
         if(!one){const h=(x.hist||[]).filter(z=>z.from<k);if(x.start&&x.start>=k)y.amount=amt;else if(exAmt(Object.assign({},x,{hist:h}),k)!==amt)h.push({from:k,amount:amt});if(h.length)y.hist=h;else delete y.hist}
         return y});
-      await saveSettings('me',{expenses:list},true);
+      await saveSettings(splitKey(k).p,{expenses:list},true);
       const ov=Object.assign({},(S.cycles[k]||{}).exOv||{});const had=ov[sh.id]!=null;if(one)ov[sh.id]=amt;else delete ov[sh.id];
       if(one||had)await saveCycle(k,c=>{if(Object.keys(ov).length)c.exOv=ov;else delete c.exOv})}
     toast('บันทึกแล้ว');break}
   case 'exremove':{const sh=S.sheet&&S.sheet.ex;if(!sh)break;S.sheet=null;
     if(sh.kind==='once')await saveCycle(sh.k,c=>{c.oneOff=(c.oneOff||[]).filter(x=>x.id!==sh.id)});
-    else{const list=(cfg(S,'me').expenses||[]).flatMap(x=>x.id!==sh.id?[x]:(x.start&&x.start>=sh.k)?[]:[Object.assign({},x,{end:sh.k})]);await saveSettings('me',{expenses:list},true)}
+    else{const xp=splitKey(sh.k).p;const list=(cfg(S,xp).expenses||[]).flatMap(x=>x.id!==sh.id?[x]:(x.start&&x.start>=sh.k)?[]:[Object.assign({},x,{end:sh.k})]);await saveSettings(xp,{expenses:list},true)}
     toast('ลบแล้ว');break}
   case 'exdel':await saveSettings('me',{expenses:(cfg(S,'me').expenses||[]).filter(x=>x.id!==t.dataset.id)},true);toast('ลบแล้ว');break;
   case 'exdel1':await saveCycle(t.dataset.k,c=>{c.oneOff=(c.oneOff||[]).filter(x=>x.id!==t.dataset.id)});toast('ลบแล้ว');break;
