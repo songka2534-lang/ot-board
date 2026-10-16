@@ -213,6 +213,16 @@ details[open] > summary::after{content:"ซ่อน"}
 .thn{font-size:11.5px;padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tht[aria-pressed="true"] .thn{font-weight:700;color:var(--ac-ink)}
 .thc{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:12px;background:#fff;color:var(--ac);font-style:normal;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+
+/* photo header */
+.hero-b.ph{height:236px} .hero-b.ph .hb-in{height:198px}
+.hb-img{background-size:cover;background-position:left center;background-repeat:no-repeat}
+.hb-veil.ph{background:linear-gradient(260deg,rgba(0,0,0,.42) 0%,rgba(0,0,0,.22) 38%,rgba(0,0,0,0) 62%)}
+.hero-b.ph .hb-app{visibility:hidden}
+.hero-b.ph .hb-bot{flex-direction:column-reverse;align-items:flex-end;gap:6px}
+.hero-b.ph .hb-who{align-items:flex-end;text-align:right}
+.tha.img{background-size:cover;background-position:left center}
+.tha.add{display:flex;align-items:center;justify-content:center;border-bottom:1px dashed var(--line2);color:var(--ac-ink);font-size:22px;font-weight:600}
 </style>
 </head>
 <body>
@@ -752,18 +762,21 @@ function bannerSVG(id,seed){
     b+=stars(140,55,105,1)}
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" aria-hidden="true"><defs>${defs}</defs><rect width="${W}" height="${H}" fill="url(#${uid}g)"/>${b}</svg>`}
 
-function themeOf(p){const t=cfg(S,p).theme;return t==='none'||PATTERNS.some(x=>x.id===t)?t:(p==='me'?'lens':'sakura')}
+function photoOf(p){const v=(S.settings[p+'-photo']||{}).img;return typeof v==='string'&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v)?v:''}
+function themeOf(p){const t=cfg(S,p).theme;if(t==='photo')return photoOf(p)?'photo':(p==='me'?'lens':'sakura');return t==='none'||PATTERNS.some(x=>x.id===t)?t:(p==='me'?'lens':'sakura')}
 function heroHead(p,k,ha){const t=themeOf(p);const L=cycleLabel(k);
   const inner=`<div class="hb-in"><div class="hb-top"><span class="hb-app">OT Board</span>${personSeg()}</div>
   <div class="hb-bot"><div class="hb-who"><b>${p==='me'?'สง':'ตา'}</b><div class="hb-cyc"><button class="hb-ar" type="button" data-act="cyc" data-n="-1" aria-label="รอบก่อน">‹</button><span>${L.name}</span><button class="hb-ar" type="button" data-act="cyc" data-n="1" aria-label="รอบถัดไป">›</button></div>
   <span class="hb-rng">${L.range}${k!==curKey(p)?` · <button class="hb-now" type="button" data-act="cycnow">กลับรอบปัจจุบัน</button>`:''}</span></div>
   <div class="hb-amt"><span>${ha?ha[0]:''}</span><b>${ha?B(ha[1]):''}</b></div></div></div>`;
   if(t==='none')return `<header class="hero-b none">${inner}</header>`;
+  if(t==='photo')return `<header class="hero-b ph"><div class="hb-mask"><div class="hb-art hb-img" style="background-image:url('${photoOf(p)}')"></div><div class="hb-veil ph"></div></div>${inner}</header>`;
   const P=PATTERNS.find(x=>x.id===t);const dk=P.ink!=='#FFFFFF';const g=P.v||P.g[0];
   return `<header class="hero-b${dk?' dk':''}" style="--hv:${g}E6;--hv2:${g}99;--hv3:${g}80;--hv0:${g}00"><div class="hb-mask"><div class="hb-art">${bannerSVG(t,p==='me'?11:5)}</div><div class="hb-veil"></div></div>${inner}</header>`}
-function themeCard(p){const cur=themeOf(p);const opts=[{id:'none',name:'ไม่ใช้ลาย'}].concat(PATTERNS);
-  return `<section class="card"><div class="row"><h2>ลายหัวแอปของ${p==='me'?'สง':'ตา'}</h2><span class="tiny muted">${opts.length} แบบ · แตะเพื่อเปลี่ยน</span></div><div class="thg">${opts.map((x,i)=>`<button type="button" class="tht" data-act="theme" data-v="${x.id}" aria-pressed="${x.id===cur}">${x.id==='none'?'<span class="tha none" aria-hidden="true">⌀</span>':`<span class="tha">${bannerSVG(x.id,20+i)}</span>`}<span class="thn">${x.name}</span>${x.id===cur?'<i class="thc" aria-hidden="true">✓</i>':''}</button>`).join('')}</div>
-  <div class="tiny muted">สงกับตาเลือกลายแยกกัน · สลับปุ่ม สง/ตา ด้านบนเพื่อเลือกของอีกคน · “ไม่ใช้ลาย” หัวแอปจะเป็นพื้นขาวเรียบ</div></section>`}
+function themeCard(p){const cur=themeOf(p);const ph=photoOf(p);const opts=[{id:'photo',name:ph?'รูปของฉัน':'+ ใช้รูปตัวเอง'},{id:'none',name:'ไม่ใช้ลาย'}].concat(PATTERNS);
+  return `<section class="card"><div class="row"><h2>ลายหัวแอปของ${p==='me'?'สง':'ตา'}</h2><span class="tiny muted">${opts.length} แบบ · แตะเพื่อเปลี่ยน</span></div><div class="thg">${opts.map((x,i)=>`<button type="button" class="tht" data-act="${x.id==='photo'&&!ph?'photopick':'theme'}" data-v="${x.id}" aria-pressed="${x.id===cur}">${x.id==='photo'?(ph?`<span class="tha img" style="background-image:url('${ph}')" aria-hidden="true"></span>`:'<span class="tha add" aria-hidden="true">+</span>'):x.id==='none'?'<span class="tha none" aria-hidden="true">⌀</span>':`<span class="tha">${bannerSVG(x.id,20+i)}</span>`}<span class="thn">${x.name}</span>${x.id===cur?'<i class="thc" aria-hidden="true">✓</i>':''}</button>`).join('')}</div>
+  <input id="photoimg" type="file" accept="image/*" hidden>${ph?`<div class="btns"><button class="btn soft" type="button" data-act="photopick">เปลี่ยนรูป</button><button class="btn link" type="button" data-act="photodel">ลบรูป</button></div>`:''}
+  <div class="tiny muted">สงกับตาเลือกลายแยกกัน · สลับปุ่ม สง/ตา ด้านบนเพื่อเลือกของอีกคน · รูปแนวยาวสวยสุด (หน้าอยู่ซ้าย) · รูปเก็บใน Google Sheet ไม่ขึ้น GitHub</div></section>`}
 /* ---------- slip tab ---------- */
 function renderSlip(){const p=S.person,k=selKey(p);
   if(p==='me'){const Y=meYear(S,splitKey(k).y,TODAY,S.scenario);const r=Y.rows.find(x=>x.key===k);return `${topBar('สลิป & รายจ่าย',personSeg())}${banner()}${cycNav(p)}${slipCard(k,r)}${expenseCard(k,r)}${pasteCard()}`}
@@ -888,6 +901,8 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
     const cat=document.getElementById('ex-cat').value,rec=document.getElementById('ex-rec').value==='1';const item={id:'x'+Date.now().toString(36),name,amount:amt,cat};if(rec)item.start=t.dataset.k;
     document.getElementById('ex-name').value='';document.getElementById('ex-amt').value='';
     if(rec){const xp=splitKey(t.dataset.k).p;await saveSettings(xp,{expenses:[...(cfg(S,xp).expenses||[]),item]},true)}else await saveCycle(t.dataset.k,c=>{c.oneOff=[...(c.oneOff||[]),item]});toast('เพิ่มรายจ่ายแล้ว');break}
+  case 'photopick':{const el=document.getElementById('photoimg');if(el){el.value='';el.click()}break}
+  case 'photodel':{await saveSettings(p+'-photo',{img:''},true);if(cfg(S,p).theme==='photo')await saveSettings(p,{theme:p==='me'?'lens':'sakura'},true);toast('ลบรูปแล้ว');break}
   case 'theme':await saveSettings(p,{theme:t.dataset.v},true);toast('เปลี่ยนลายแล้ว');break;
   case 'hrswho':S.hrsWho=t.dataset.v;S.hrsOpen=null;render();break;
   case 'hrsrow':{const m=+t.dataset.m;const ck=hrsData(S.hrsWho||S.person,YEAR).find(r=>r.cur);const cur=S.hrsOpen==null?(ck?ck.m:12):S.hrsOpen;S.hrsOpen=cur===m?0:m;render();break}
@@ -940,6 +955,14 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
 document.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='restore'||!t.files||!t.files[0])return;
   try{const d=JSON.parse(await t.files[0].text());if(!d||typeof d!=='object'||!d.cycles)throw 0;S.settings=d.settings||{};S.cycles=d.cycles||{};writeLocal();render();
     if(store.mode==='sheet')await uploadAll();toast(`นำเข้าแล้ว ${Object.keys(S.cycles).length} รอบ`)}catch(e){toast('ไฟล์นี้ไม่ใช่ไฟล์สำรองของ OT Board')}});
+async function shrinkPhoto(file){const url=URL.createObjectURL(file);try{const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=url});
+  let W=960;for(let n=0;n<8;n++){const H=Math.round(W/3);const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+    const s=Math.max(W/img.width,H/img.height),dw=img.width*s,dh=img.height*s;g.drawImage(img,img.width/img.height>3?(W-dw)/2:0,(H-dh)/2,dw,dh);
+    for(const q of [.8,.7,.6,.5]){const d=c.toDataURL('image/jpeg',q);if(d.length<46000)return d}W=Math.round(W*.85)}
+  throw new Error('big')}finally{URL.revokeObjectURL(url)}}
+document.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='photoimg'||!t.files||!t.files[0])return;const p=S.person;
+  try{toast('กำลังใส่รูป…');const img=await shrinkPhoto(t.files[0]);await saveSettings(p+'-photo',{img},true);await saveSettings(p,{theme:'photo'},true);toast('ใช้รูปเป็นหัวแอปแล้ว')}
+  catch(e){toast('ใส่รูปนี้ไม่ได้ ลองรูปอื่น')}});
 document.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='slipimg'||!t.files||!t.files[0]||!S.sample)return;const file=t.files[0];const k=selKey('me');
   S.slipBusy=true;render();
   try{const v=await S.sample.json('รูปนี้คือสลิปเงินเดือนภาษาไทย อ่านตัวเลขแล้วตอบเป็น JSON อย่างเดียว ใช้ตัวเลขล้วน (ไม่มีจุลภาค) ช่องที่ไม่มีให้เป็น null:\n{"salary":เงินเดือน,"travel":ค่าช่วยเหลือเดินทาง,"ot":ค่าล่วงเวลา,"meal":ค่าอาหาร,"gross":รวมรายได้,"pf":กองทุนสำรองเลี้ยงชีพ,"sso":ประกันสังคม,"loan":กองทุนกู้ยืมเพื่อการศึกษา,"tax":ภาษี,"net":ยอดสุทธิ,"vl":สิทธิพักร้อนคงเหลือ,"ytdIncome":รายได้สะสม,"ytdTax":ภาษีสะสม,"ytdPf":เงินสะสมกองทุน,"ytdSso":ประกันสังคมสะสม}',{images:file});
