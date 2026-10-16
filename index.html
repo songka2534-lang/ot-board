@@ -177,6 +177,31 @@ details[open] > summary::after{content:"ซ่อน"}
 .radio::before{content:'';display:block;flex:none;box-sizing:border-box;width:18px;height:18px;border-radius:50%;border:2px solid var(--faint)}
 .radio[aria-pressed="true"]{border:2px solid var(--ac);background:var(--ac-tint)} .radio[aria-pressed="true"]::before{border:5px solid var(--ac);background:var(--surface)}
 .btn.danger{background:none;color:var(--bad);text-decoration:underline;font-weight:500}
+
+/* themed header */
+.hero-b{position:relative;margin:-12px -16px 0;height:176px;border-radius:0 0 24px 24px;overflow:hidden;color:#fff}
+.hero-b.dk{color:#1E1B4B}
+.hb-art,.hb-veil{position:absolute;inset:0} .hb-art svg,.tha svg{display:block;width:100%;height:100%}
+.hb-veil{background:linear-gradient(100deg,var(--hv) 0%,var(--hv2) 32%,var(--hv0) 62%),linear-gradient(260deg,var(--hv2) 0%,var(--hv0) 38%)}
+.hb-in{position:relative;height:100%;padding:12px 16px 14px;display:flex;flex-direction:column;justify-content:space-between}
+.hero-b:not(.dk) .hb-in{text-shadow:0 1px 10px rgba(0,0,0,.28)}
+.hb-top,.hb-bot{display:flex;justify-content:space-between;gap:10px} .hb-top{align-items:center} .hb-bot{align-items:flex-end}
+.hb-app{font-size:14px;font-weight:600;opacity:.92}
+.hb-who{display:flex;flex-direction:column;min-width:0} .hb-who>b{font-size:30px;line-height:1.1}
+.hb-cyc{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;margin-top:2px}
+.hb-ar{width:36px;height:36px;border:0;border-radius:10px;background:rgba(15,23,42,.22);color:inherit;font-size:18px;line-height:1;padding:0}
+.hb-rng{font-size:12px;opacity:.92}
+.hb-now{border:0;background:none;color:inherit;text-decoration:underline;font-size:12px;padding:0;min-height:0}
+.hb-amt{display:flex;flex-direction:column;align-items:flex-end;flex:none} .hb-amt span{font-size:11px;opacity:.88} .hb-amt b{font-size:22px;white-space:nowrap}
+.hero-b .seg{background:rgba(15,23,42,.22);border-color:transparent;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.hero-b .seg button{color:inherit;min-height:34px;text-shadow:none}
+.hero-b .pp button.me[aria-pressed="true"]{background:#fff;color:var(--me)} .hero-b .pp button.pt[aria-pressed="true"]{background:#fff;color:var(--pt)}
+.hero-b.dk .hb-ar,.hero-b.dk .seg{background:rgba(30,27,75,.12)}
+.thg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tht{position:relative;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);display:flex;flex-direction:column;text-align:left;color:var(--fg)}
+.tht[aria-pressed="true"]{border:3px solid var(--ac)} .tha{display:block;height:64px} .thn{font-size:13px;padding:6px 10px}
+.tht[aria-pressed="true"] .thn{font-weight:700;color:var(--ac-ink)}
+.thc{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:12px;background:#fff;color:var(--ac);font-style:normal;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
 </style>
 </head>
 <body>
@@ -194,9 +219,9 @@ const r2=x=>Math.round(x*100)/100;
 
 const DEF_HOL=[['2026-10-13','วันนวมินทรมหาราช'],['2026-10-23','วันปิยมหาราช'],['2026-12-05','วันพ่อแห่งชาติ'],['2026-12-07','ชดเชยวันพ่อแห่งชาติ'],['2026-12-10','วันรัฐธรรมนูญ'],['2026-12-31','วันสิ้นปี']];
 const DEF={
-  me:{salaryFrom:[{ym:'2026-01',v:23045},{ym:'2026-04',v:24660}],cycleStart:16,travel:500,lunch:30,otMeal:30,
+  me:{salaryFrom:[{ym:'2026-01',v:23045},{ym:'2026-04',v:24660}],cycleStart:16,travel:500,lunch:30,otMeal:30,theme:'lens',
       pfRate:15,sso:875,loan:390,otherDeduct:0,extraTaxable:7000,taxAllowance:0,holidays:DEF_HOL,expenses:[]},
-  partner:{wage:400,cycleStart:21,ot15:1.5,ot3:3,travel:25,meal:35,skill:45,diligence:300,loseOn:['sick'],ssoRate:5,ssoCap:875,
+  partner:{theme:'sakura',wage:400,cycleStart:21,ot15:1.5,ot3:3,travel:25,meal:35,skill:45,diligence:300,loseOn:['sick'],ssoRate:5,ssoCap:875,
       holMult:2,paidHoliday:true,holidays:DEF_HOL}
 };
 const SCN={low:0.85,mid:1,high:1.1};
@@ -466,13 +491,13 @@ function todayCard(p){
   return `<section class="card">${head}<div class="small" style="color:var(--fg2)">${p==='me'?'ทำ OT กี่ชั่วโมง?':'มาทำงาน · OT กี่ชั่วโมง?'}</div><div class="qh">${qs}</div>
   ${p==='partner'?`<div class="btns"><button class="btn soft" type="button" data-act="quick" data-d="${ds}" data-s="sick">ลาป่วย</button><button class="btn soft" type="button" data-act="quick" data-d="${ds}" data-s="leave">ลากิจ</button><button class="btn soft" type="button" data-act="quick" data-d="${ds}" data-s="vac">ลาพักร้อน</button><button class="btn soft" type="button" data-act="quick" data-d="${ds}" data-s="off">หยุด</button></div>`:''}
   <div class="tiny muted">แตะครั้งเดียวบันทึกเลย · แตะวันอื่นในปฏิทินเพื่อแก้ย้อนหลัง</div></section>`}
-function renderCal(){const p=S.person,k=selKey(p);let chips;
+function renderCal(){const p=S.person,k=selKey(p);let chips,heroAmt;
   if(p==='me'){const Y=meYear(S,YEAR,TODAY,S.scenario);const r=Y.rows.find(x=>x.key===k)||meYear(S,splitKey(k).y,TODAY,S.scenario).rows.find(x=>x.key===k);
-    const done=r.src==='slip'||r.src==='file';
-    chips=`<div class="kc"><span>${done?'OT รอบนี้':'OT ติกแล้ว'}</span><b>${B(done?r.otPay:r.otActual)}</b></div><div class="kc"><span>${done?'รายได้รอบนี้':'คาดรอบนี้'}</span><b>${B(r.gross)}</b></div><div class="kc ac"><span>ทั้งปี (คาด)</span><b>${kB(Y.gross)}</b></div>`}
+    const done=r.src==='slip'||r.src==='file';heroAmt=[done?'รายได้รอบนี้':'คาดรอบนี้',r.gross];const hh=meHrs(S,k,SCN[S.scenario]);
+    chips=`<div class="kc"><span>${done?'OT รอบนี้':'OT ติกแล้ว'}</span><b>${B(done?r.otPay:r.otActual)}</b></div><div class="kc"><span>ชั่วโมง OT</span><b>${hh.known?hrs(sumv(hh.a))+' ชม.':'–'}</b></div><div class="kc ac"><span>ทั้งปี (คาด)</span><b>${kB(Y.gross)}</b></div>`}
   else{const Y=ptYear(S,YEAR,TODAY,S.scenario);const r=ptCycle(S,k,TODAY,SCN[S.scenario]);
-    chips=`<div class="kc"><span>${r.src==='actual'?'รายได้รอบนี้':'คาดรอบนี้'}</span><b>${B(r.gross)}</b></div><div class="kc"><span>เบี้ยขยัน</span><b class="${r.dil?'good':'badc'}">${r.dil?'ได้ '+B(r.dil):'หลุด'}</b></div><div class="kc ac"><span>ทั้งปี (คาด)</span><b>${kB(Y.gross)}</b></div>`}
-  return `${topBar('OT Board',personSeg())}${banner()}${cycNav(p)}<div class="chips">${chips}</div>${calGrid(p,k)}${todayCard(p)}`}
+    heroAmt=[r.src==='actual'?'รายได้รอบนี้':'คาดรอบนี้',r.gross];chips=`<div class="kc"><span>ชั่วโมง OT</span><b>${hrs(sumv(ptHrs(S,k,SCN[S.scenario]).a))} ชม.</b></div><div class="kc"><span>เบี้ยขยัน</span><b class="${r.dil?'good':'badc'}">${r.dil?'ได้ '+B(r.dil):'หลุด'}</b></div><div class="kc ac"><span>ทั้งปี (คาด)</span><b>${kB(Y.gross)}</b></div>`}
+  return `${heroHead(p,k,heroAmt)}${banner()}<div class="chips">${chips}</div>${calGrid(p,k)}${todayCard(p)}`}
 
 /* ---------- day sheet ---------- */
 function exSheetHTML(){const sh=S.sheet.ex,k=sh.k;const {rec,once}=exList(k);const x=(sh.kind==='once'?once:rec).find(z=>z.id===sh.id);if(!x)return '';
@@ -581,6 +606,87 @@ function leftCard(M,P){const km=curKey('me'),kp=curKey('partner');const rm=M.row
   return `<section class="card"><div class="row"><h2>คงเหลือรอบนี้</h2><span class="tiny muted">หลังหักรายจ่าย</span></div><div>${li('สง',rm.net,em,lm,'var(--me)')}${li('ตา',rp.net,ep,lp,'var(--pt)')}
   <div class="li b2"><span>คงเหลือรวมสองคน</span><b class="big ${lm+lp<0?'badc':''}">${B(lm+lp)}</b></div></div></section>`}
 function vacUsed(y){let n=0;for(const [k,c] of Object.entries(S.cycles)){if(!k.startsWith('partner-')||!c.days)continue;for(const [ds,e] of Object.entries(c.days))if(e&&e.s==='vac'&&+ds.slice(0,4)===y)n++}return n}
+/* OT Board header patterns — bannerSVG(id, seed) returns an <svg> string (viewBox 390x150, slice-fills any box) */
+const PATTERNS=[
+ {id:'geo',   name:'เรขาคณิต',     g:['#2A2A86','#3D37B5'], ink:'#FFFFFF'},
+ {id:'lens',  name:'รูรับแสง',      g:['#035E8F','#22A6E0'], ink:'#FFFFFF'},
+ {id:'wave',  name:'คลื่นทะเล',     g:['#0B4F6C','#1D7FD1'], ink:'#FFFFFF'},
+ {id:'night', name:'กะดึก',        g:['#0B1236','#3A2C86'], ink:'#FFFFFF'},
+ {id:'chip',  name:'วงจร',         g:['#05263F','#0A4E7A'], ink:'#FFFFFF'},
+ {id:'dusk',  name:'เลิกงานเย็น',    g:['#F2994A','#E75480'], ink:'#FFFFFF'},
+ {id:'sakura',name:'ซากุระ',        g:['#F7A1C4','#B57BEA'], ink:'#FFFFFF'},
+ {id:'memph', name:'เมมฟิส',        g:['#FFD45C','#FF8FA3'], ink:'#1E1B4B'},
+ {id:'print', name:'พิมพ์เขียว',     g:['#1C46C8','#163A9E'], ink:'#FFFFFF'},
+ {id:'aurora',name:'ออโรร่า',       g:['#06142E','#0B2447'], ink:'#FFFFFF'}
+];
+function bannerSVG(id,seed){
+  const P=PATTERNS.find(p=>p.id===id)||PATTERNS[0];const W=390,H=150;
+  let s=(seed||7)>>>0;const R=()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};
+  const rr=(a,b)=>a+R()*(b-a);const f=n=>n.toFixed(1);const uid='p'+id+(seed||7);
+  let defs=`<linearGradient id="${uid}g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${P.g[0]}"/><stop offset="1" stop-color="${P.g[1]}"/></linearGradient>`;
+  let b='';
+  const poly=(cx,cy,r,n,rot)=>Array.from({length:n},(_,i)=>{const a=rot+i*2*Math.PI/n;return f(cx+r*Math.cos(a))+','+f(cy+r*Math.sin(a))}).join(' ');
+  if(id==='geo'){
+    const pts=[[40,30],[95,95],[150,40],[205,110],[262,52],[318,118],[352,34],[28,118],[120,128],[290,12],[372,92],[178,10]];
+    pts.forEach(([x,y],i)=>{const r=rr(9,26),o=rr(.45,.95),w=rr(1.2,2.2),k=i%4,rot=rr(0,6.28);
+      b+= k===0?`<circle cx="${x}" cy="${y}" r="${f(r)}"/>`:k===1?`<polygon points="${poly(x,y,r,3,rot)}"/>`:k===2?`<polygon points="${poly(x,y,r,4,rot)}"/>`:`<rect x="${f(x-r*.6)}" y="${f(y-r*.6)}" width="${f(r*1.2)}" height="${f(r*1.2)}" rx="2" transform="rotate(${f(rot*30)} ${x} ${y})"/>`;
+      b=b.replace(/\/>$/,` stroke-opacity="${f(o)}" stroke-width="${f(w)}"/>`)});
+    b=`<g fill="none" stroke="#fff" stroke-linejoin="round">${b}</g>`}
+  if(id==='lens'){
+    const L=(cx,cy,r,o)=>{let g='';for(let i=0;i<4;i++)g+=`<circle cx="${cx}" cy="${cy}" r="${f(r*(1-i*.2))}" stroke-opacity="${f(o*(1-i*.18))}"/>`;
+      const n=7,ri=r*.38;for(let i=0;i<n;i++){const a=i*2*Math.PI/n,a2=a+2*Math.PI/n;g+=`<path d="M${f(cx+ri*Math.cos(a))} ${f(cy+ri*Math.sin(a))} L${f(cx+r*.6*Math.cos(a2+.5))} ${f(cy+r*.6*Math.sin(a2+.5))}" stroke-opacity="${f(o)}"/>`}return g};
+    b=`<g fill="none" stroke="#fff" stroke-width="1.4">${L(318,74,64,.55)}${L(62,124,34,.35)}${L(200,18,22,.3)}</g>`;
+    for(let i=0;i<14;i++)b+=`<circle cx="${f(rr(0,W))}" cy="${f(rr(0,H))}" r="${f(rr(2,9))}" fill="#fff" fill-opacity="${f(rr(.06,.22))}"/>`}
+  if(id==='wave'){
+    for(let i=0;i<7;i++){const y0=18+i*19,a=rr(6,14),ph=rr(0,6),k=rr(.015,.028);let d=`M0 ${f(y0)}`;for(let x=0;x<=W;x+=10)d+=` L${x} ${f(y0+a*Math.sin(x*k+ph))}`;
+      b+=`<path d="${d}" fill="none" stroke="#fff" stroke-opacity="${f(.12+i*.08)}" stroke-width="${f(1.2+i*.25)}"/>`}
+    b+=`<circle cx="330" cy="40" r="16" fill="#fff" fill-opacity=".18"/>`}
+  if(id==='night'){
+    for(let i=0;i<46;i++)b+=`<circle cx="${f(rr(0,W))}" cy="${f(rr(0,H))}" r="${f(rr(.5,1.6))}" fill="#fff" fill-opacity="${f(rr(.3,.9))}"/>`;
+    const star=(x,y,r)=>`<path d="M${x} ${f(y-r)} Q${x} ${y} ${f(x+r)} ${y} Q${x} ${y} ${x} ${f(y+r)} Q${x} ${y} ${f(x-r)} ${y} Q${x} ${y} ${x} ${f(y-r)}Z" fill="#fff"/>`;
+    [[70,40,8],[150,104,6],[240,30,5],[372,120,7],[110,128,4]].forEach(a=>b+=star(...a));
+    b+=`<circle cx="318" cy="56" r="26" fill="#FDE68A"/><circle cx="330" cy="48" r="24" fill="${P.g[1]}"/>`}
+  if(id==='chip'){
+    let g='';for(let i=0;i<16;i++){let x=f(rr(0,W)),y=f(rr(0,H));let d=`M${x} ${y}`;let cx=+x,cy=+y;for(let j=0;j<3;j++){if(j%2){cx+=rr(-70,70)}else{cy+=rr(-45,45)}d+=` L${f(cx)} ${f(cy)}`}
+      g+=`<path d="${d}"/><circle cx="${f(cx)}" cy="${f(cy)}" r="3.2" fill="${P.g[0]}"/><circle cx="${x}" cy="${y}" r="2" fill="#7DD3FC" stroke="none"/>`}
+    b=`<g fill="none" stroke="#7DD3FC" stroke-opacity=".55" stroke-width="1.3" stroke-linejoin="round">${g}</g><rect x="296" y="38" width="62" height="62" rx="8" fill="none" stroke="#7DD3FC" stroke-opacity=".8" stroke-width="1.6"/>`;
+    for(let i=0;i<5;i++){b+=`<path d="M${306+i*11} 38 v-10 M${306+i*11} 100 v10 M296 ${48+i*11} h-10 M358 ${48+i*11} h10" stroke="#7DD3FC" stroke-opacity=".6" stroke-width="1.3"/>`}}
+  if(id==='dusk'){
+    b=`<circle cx="270" cy="96" r="34" fill="#FFE29A" fill-opacity=".9"/>`;
+    const ridge=(base,amp,col,o)=>{let d=`M0 ${H}`;for(let x=0;x<=W;x+=26)d+=` L${x} ${f(base-rr(0,amp))}`;return `<path d="${d} L${W} ${H}Z" fill="${col}" fill-opacity="${o}"/>`};
+    b+=ridge(108,30,'#7B3F8C',.55)+ridge(126,22,'#4B2A6E',.7)+ridge(146,14,'#2D1B4E',.85);
+    for(let i=0;i<4;i++)b+=`<path d="M${f(rr(20,200))} ${f(rr(18,50))} q6 -5 12 0 q6 -5 12 0" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.4"/>`}
+  if(id==='sakura'){
+    const fl=(x,y,r,o,rot)=>{let g='';for(let i=0;i<5;i++){const a=rot+i*72;g+=`<ellipse cx="${x}" cy="${f(y-r*.55)}" rx="${f(r*.32)}" ry="${f(r*.55)}" transform="rotate(${f(a)} ${x} ${y})"/>`}return `<g fill="#fff" fill-opacity="${o}">${g}<circle cx="${x}" cy="${y}" r="${f(r*.16)}" fill="#F472B6" fill-opacity=".9"/></g>`};
+    [[300,52,26,.85],[352,118,18,.7],[60,112,16,.6],[190,26,12,.55],[232,124,10,.5],[120,48,9,.45]].forEach(([x,y,r,o])=>b+=fl(x,y,r,o,rr(0,72)));
+    for(let i=0;i<12;i++){const x=f(rr(0,W)),y=f(rr(0,H));b+=`<ellipse cx="${x}" cy="${y}" rx="3" ry="5.5" fill="#fff" fill-opacity="${f(rr(.35,.75))}" transform="rotate(${f(rr(0,180))} ${x} ${y})"/>`}}
+  if(id==='memph'){
+    const C=['#1E1B4B','#0EA5A4','#FFFFFF','#3B5BDB'];
+    b+=`<path d="M18 36 q12 -14 24 0 t24 0 t24 0" fill="none" stroke="${C[0]}" stroke-width="3" stroke-linecap="round"/>`;
+    b+=`<path d="M232 128 l10 -12 l10 12 l10 -12 l10 12 l10 -12" fill="none" stroke="${C[3]}" stroke-width="3" stroke-linejoin="round"/>`;
+    b+=`<circle cx="330" cy="46" r="22" fill="${C[1]}"/><path d="M128 128 a22 22 0 0 1 44 0z" fill="${C[0]}"/><rect x="190" y="24" width="22" height="22" fill="none" stroke="${C[0]}" stroke-width="3" transform="rotate(18 201 35)"/>`;
+    b+=`<polygon points="${poly(372,124,15,3,-1.57)}" fill="${C[2]}"/><polygon points="${poly(86,104,12,3,.4)}" fill="none" stroke="${C[3]}" stroke-width="3"/>`;
+    for(let i=0;i<5;i++)for(let j=0;j<3;j++)b+=`<circle cx="${260+i*9}" cy="${86+j*9}" r="2" fill="${C[0]}"/>`;
+    for(let i=0;i<9;i++)b+=`<path d="M${f(rr(0,W))} ${f(rr(0,H))} l${f(rr(-7,7))} ${f(rr(4,8))}" stroke="${C[i%4===2?3:i%2?1:0]}" stroke-width="3" stroke-linecap="round"/>`}
+  if(id==='print'){
+    let g='';for(let x=0;x<=W;x+=13)g+=`<path d="M${x} 0V${H}" stroke-opacity="${x%65?'.10':'.24'}"/>`;for(let y=0;y<=H;y+=13)g+=`<path d="M0 ${y}H${W}" stroke-opacity="${y%65?'.10':'.24'}"/>`;
+    b=`<g stroke="#fff" stroke-width="1">${g}</g><g fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="1.5"><circle cx="312" cy="72" r="34"/><circle cx="312" cy="72" r="12"/><path d="M312 30v84M270 72h84"/>${Array.from({length:8},(_,i)=>{const a=i*Math.PI/4;return `<rect x="${f(312+40*Math.cos(a)-5)}" y="${f(72+40*Math.sin(a)-5)}" width="10" height="10" transform="rotate(${i*45} ${f(312+40*Math.cos(a))} ${f(72+40*Math.sin(a))})"/>`}).join('')}<path d="M196 122h70M196 116v12M266 116v12"/><path d="M160 30 l-30 52 h60z" stroke-dasharray="4 4"/></g><text x="231" y="114" fill="#fff" fill-opacity=".85" font-size="9" text-anchor="middle" font-family="monospace">17:30</text>`}
+  if(id==='aurora'){
+    defs+=`<filter id="${uid}b" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>`;
+    b=`<g filter="url(#${uid}b)"><ellipse cx="90" cy="60" rx="120" ry="34" fill="#34D399" fill-opacity=".75" transform="rotate(-12 90 60)"/><ellipse cx="250" cy="44" rx="110" ry="28" fill="#22D3EE" fill-opacity=".6" transform="rotate(8 250 44)"/><ellipse cx="330" cy="100" rx="90" ry="30" fill="#A78BFA" fill-opacity=".7"/></g>`;
+    for(let i=0;i<30;i++)b+=`<circle cx="${f(rr(0,W))}" cy="${f(rr(0,H))}" r="${f(rr(.5,1.3))}" fill="#fff" fill-opacity="${f(rr(.3,.8))}"/>`}
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" aria-hidden="true"><defs>${defs}</defs><rect width="${W}" height="${H}" fill="url(#${uid}g)"/>${b}</svg>`}
+
+function themeOf(p){const t=cfg(S,p).theme;return PATTERNS.some(x=>x.id===t)?t:(p==='me'?'lens':'sakura')}
+function heroHead(p,k,ha){const t=themeOf(p);const P=PATTERNS.find(x=>x.id===t);const L=cycleLabel(k);const dk=P.ink!=='#FFFFFF';const g=P.g[0];
+  return `<header class="hero-b${dk?' dk':''}" style="--hv:${g}F2;--hv2:${g}B3;--hv0:${g}00"><div class="hb-art">${bannerSVG(t,p==='me'?11:5)}</div><div class="hb-veil"></div>
+  <div class="hb-in"><div class="hb-top"><span class="hb-app">OT Board</span>${personSeg()}</div>
+  <div class="hb-bot"><div class="hb-who"><b>${p==='me'?'สง':'ตา'}</b><div class="hb-cyc"><button class="hb-ar" type="button" data-act="cyc" data-n="-1" aria-label="รอบก่อน">‹</button><span>${L.name}</span><button class="hb-ar" type="button" data-act="cyc" data-n="1" aria-label="รอบถัดไป">›</button></div>
+  <span class="hb-rng">${L.range}${k!==curKey(p)?` · <button class="hb-now" type="button" data-act="cycnow">กลับรอบปัจจุบัน</button>`:''}</span></div>
+  <div class="hb-amt"><span>${ha?ha[0]:''}</span><b>${ha?B(ha[1]):''}</b></div></div></div></header>`}
+function themeCard(p){const cur=themeOf(p);
+  return `<section class="card"><div class="row"><h2>ลายหัวแอปของ${p==='me'?'สง':'ตา'}</h2><span class="tiny muted">แตะเพื่อเปลี่ยนทันที</span></div><div class="thg">${PATTERNS.map((x,i)=>`<button type="button" class="tht" data-act="theme" data-v="${x.id}" aria-pressed="${x.id===cur}"><span class="tha">${bannerSVG(x.id,20+i)}</span><span class="thn">${x.name}</span>${x.id===cur?'<i class="thc" aria-hidden="true">✓</i>':''}</button>`).join('')}</div>
+  <div class="tiny muted">สงกับตาเลือกลายแยกกัน · สลับปุ่ม สง/ตา ด้านบนเพื่อเลือกของอีกคน</div></section>`}
 /* ---------- slip tab ---------- */
 function renderSlip(){const p=S.person,k=selKey(p);
   if(p==='me'){const Y=meYear(S,splitKey(k).y,TODAY,S.scenario);const r=Y.rows.find(x=>x.key===k);return `${topBar('สลิป & รายจ่าย',personSeg())}${banner()}${cycNav(p)}${slipCard(k,r)}${expenseCard(k,r)}${pasteCard()}`}
@@ -651,7 +757,7 @@ function renderSet(){const p=S.person;const N=(id,l,v,st='1')=>`<label class="fi
     <div class="tiny muted">เบี้ยขยันหลุดเมื่อลาป่วยหรือลากิจ · ลาพักร้อนไม่หลุด (ได้ค่าแรงปกติ)</div>
     <label class="small" style="display:flex;gap:10px;align-items:center;min-height:44px"><input id="ps-ph" type="checkbox" ${s.paidHoliday?'checked':''}> วันหยุดประเพณีได้ค่าแรง</label>
     <button class="btn" type="button" data-act="ptsave">บันทึก</button></section>`}
-  return `${topBar('ตั้งค่า',personSeg())}${banner()}${connCard()}${f}`}
+  return `${topBar('ตั้งค่า',personSeg())}${banner()}${themeCard(p)}${connCard()}${f}`}
 
 /* ---------- render ---------- */
 const ICON={cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
@@ -705,6 +811,7 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
     const cat=document.getElementById('ex-cat').value,rec=document.getElementById('ex-rec').value==='1';const item={id:'x'+Date.now().toString(36),name,amount:amt,cat};if(rec)item.start=t.dataset.k;
     document.getElementById('ex-name').value='';document.getElementById('ex-amt').value='';
     if(rec){const xp=splitKey(t.dataset.k).p;await saveSettings(xp,{expenses:[...(cfg(S,xp).expenses||[]),item]},true)}else await saveCycle(t.dataset.k,c=>{c.oneOff=[...(c.oneOff||[]),item]});toast('เพิ่มรายจ่ายแล้ว');break}
+  case 'theme':await saveSettings(p,{theme:t.dataset.v},true);toast('เปลี่ยนลายแล้ว');break;
   case 'hrswho':S.hrsWho=t.dataset.v;S.hrsOpen=null;render();break;
   case 'hrsrow':{const m=+t.dataset.m;const ck=hrsData(S.hrsWho||S.person,YEAR).find(r=>r.cur);const cur=S.hrsOpen==null?(ck?ck.m:12):S.hrsOpen;S.hrsOpen=cur===m?0:m;render();break}
   case 'exedit':S.sheet={ex:{k:t.dataset.k,id:t.dataset.id,kind:t.dataset.kind,scope:'fwd'}};render();setTimeout(()=>{const b=document.getElementById('sheetclose');b&&b.focus({preventScroll:true})},30);break;
