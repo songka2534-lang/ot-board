@@ -64,6 +64,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .cell.off,.cell.hd,.cell.wk{border-color:transparent}
 .cell.blank{background:transparent;border-color:transparent;cursor:default} .cell.blank .n{color:var(--faint);font-weight:400}
 .cell.today{box-shadow:inset 0 0 0 2px var(--ac)}
+.cell.satw{border:1.5px solid var(--ac-mid);background:var(--ac-soft)}
+.b.sat{background:transparent;color:var(--ac-ink);font-weight:500;font-size:10px}
 .cell .n.mo{font-size:12px;color:var(--ac-ink);font-weight:700}
 .b{font-size:11px;font-weight:700;line-height:17px;border-radius:6px;padding:0 6px;background:var(--ac);color:var(--on-ac);max-width:94%;overflow:hidden;white-space:nowrap}
 .b.h{background:var(--hol);color:var(--on-ac)}
@@ -241,9 +243,9 @@ const r2=x=>Math.round(x*100)/100;
 const DEF_HOL=[['2026-10-13','วันนวมินทรมหาราช'],['2026-10-23','วันปิยมหาราช'],['2026-12-05','วันพ่อแห่งชาติ'],['2026-12-07','ชดเชยวันพ่อแห่งชาติ'],['2026-12-10','วันรัฐธรรมนูญ'],['2026-12-31','วันสิ้นปี']];
 const DEF={
   me:{salaryFrom:[{ym:'2026-01',v:23045},{ym:'2026-04',v:24660}],cycleStart:16,travel:500,lunch:30,otMeal:30,theme:'lens',
-      pfRate:15,sso:875,loan:390,otherDeduct:0,extraTaxable:7000,taxAllowance:0,holidays:DEF_HOL,expenses:[]},
+      pfRate:15,sso:875,loan:390,otherDeduct:0,extraTaxable:7000,taxAllowance:0,holidays:DEF_HOL,expenses:[],satWork:[]},
   partner:{theme:'sakura',wage:400,cycleStart:21,ot15:1.5,ot3:3,travel:25,meal:35,skill:45,diligence:300,loseOn:['sick'],ssoRate:5,ssoCap:875,
-      holMult:2,paidHoliday:true,holidays:DEF_HOL}
+      holMult:2,paidHoliday:true,holidays:DEF_HOL,satOff:[]}
 };
 const SCN={low:0.85,mid:1,high:1.1};
 
@@ -256,7 +258,7 @@ function cycleOf(S,p,d){const cs=cfg(S,p).cycleStart;let y=d.getFullYear(),m=d.g
 function datesIn(S,k){const {start,end}=cycleRange(S,k);const out=[];for(let d=start;d<=end;d=addDays(d,1))out.push(ymd(d));return out}
 function shiftKey(k,n){const {p,y,m}=splitKey(k);const t=new Date(y,m-1+n,1);return keyOf(p,t.getFullYear(),t.getMonth()+1)}
 function yearKeys(p,y){return Array.from({length:12},(_,i)=>keyOf(p,y,i+1))}
-function isOffDay(S,p,ds){const d=parseD(ds).getDay();if(holMap(S,p)[ds])return true;return p==='me'?(d===0||d===6):d===0}
+function isOffDay(S,p,ds){const d=parseD(ds).getDay();if(holMap(S,p)[ds])return true;if(d===6)return p==='me'?!(cfg(S,'me').satWork||[]).includes(ds):(cfg(S,'partner').satOff||[]).includes(ds);return d===0}
 function salaryFor(S,k){const {y,m}=splitKey(k);const ym=`${y}-${pad(m)}`;let v=0;for(const s of cfg(S,'me').salaryFrom.slice().sort((a,b)=>a.ym<b.ym?-1:1))if(s.ym<=ym)v=s.v;return v||cfg(S,'me').salaryFrom[0].v}
 function getDay(S,p,ds){const k=cycleOf(S,p,parseD(ds));const c=S.cycles[k];return c&&c.days?c.days[ds]:undefined}
 
@@ -325,10 +327,10 @@ function ptDay(S,e,ds){const c=cfg(S,'partner'),h=c.wage/8,al=c.travel+c.meal+c.
   if(e.s==='vac')return Object.assign(z,{wage:c.wage,base:c.wage});
   if(e.s==='off'&&holMap(S,'partner')[ds]&&c.paidHoliday)return Object.assign(z,{wage:c.wage,base:c.wage});
   return z}
-function ptStats(S,curKey){const by=Array.from({length:7},()=>({n:0,w:0}));let otH=0,wk=0,cycles=0;
+function ptStats(S,curKey){const SO=cfg(S,'partner').satOff||[];const by=Array.from({length:7},()=>({n:0,w:0}));let otH=0,wk=0,cycles=0;
   for(let i=0;i<=6&&cycles<4;i++){const k=shiftKey(curKey,-i);const c=S.cycles[k];if(!c||!c.days)continue;let any=0;
     const keys=Object.keys(c.days).sort();const last=keys[keys.length-1];
-    for(const ds of datesIn(S,k)){if(!last||ds>last)break;if(holMap(S,'partner')[ds])continue;const e=c.days[ds];const dw=parseD(ds).getDay();by[dw].n++;any++;
+    for(const ds of datesIn(S,k)){if(!last||ds>last)break;if(holMap(S,'partner')[ds]||SO.includes(ds))continue;const e=c.days[ds];const dw=parseD(ds).getDay();by[dw].n++;any++;
       if(e&&(e.s==='work'||e.s==='hol')){by[dw].w++;if(e.s==='work'){otH+=+e.ot||0;wk++}}}
     if(any)cycles++}
   const dflt=[0,1,1,1,1,1,0.4];
@@ -341,6 +343,7 @@ function ptCycle(S,k,todayStr,f){
     if(!e&&ds<=last&&!hm[ds]&&st.p[parseD(ds).getDay()]<0.5)continue;
     if(e){const r=ptDay(S,e,ds);wageA+=r.wage;otA+=r.ot;alA+=r.allow;hA+=r.hours;baseA+=r.base;daysA+=r.worked;logged++;if(LOSE.includes(e.s))lost=true}
     else if(hm[ds]){if(set.paidHoliday){wageE+=set.wage;baseE+=set.wage}}
+    else if((set.satOff||[]).includes(ds)){}
     else{const p=st.p[parseD(ds).getDay()];wageE+=p*set.wage;baseE+=p*set.wage;alE+=p*al;otE+=p*st.avgOt*h*set.ot15*f;hE+=p*st.avgOt*f;daysE+=p}}
   let dil=lost?0:set.diligence;if(c.diligence==='yes')dil=set.diligence;if(c.diligence==='no')dil=0;
   const gross=wageA+wageE+otA+otE+alA+alE+dil;
@@ -385,7 +388,7 @@ function ptHrs(S,k,f){const c=S.cycles[k]||{},set=cfg(S,'partner'),h=set.wage/8,
   const lk=Object.keys(c.days||{}).sort();const last=lk[lk.length-1]||'';
   for(const ds of datesIn(S,k)){const e=c.days&&c.days[ds];
     if(e){o.logged=true;if(e.s==='work')add('a',set.ot15,+e.ot||0,h*set.ot15);else if(e.s==='hol'){add('a',set.holMult,8,h*set.holMult);add('a',set.ot3,+e.ot||0,h*set.ot3);o.hol++}}
-    else if(hm[ds]||(ds<=last&&st.p[parseD(ds).getDay()]<0.5)){}
+    else if(hm[ds]||(set.satOff||[]).includes(ds)||(ds<=last&&st.p[parseD(ds).getDay()]<0.5)){}
     else add('e',set.ot15,st.p[parseD(ds).getDay()]*st.avgOt*f)}
   return o}
 // CALC-END
@@ -436,7 +439,7 @@ const store={
 async function uploadAll(){for(const [id,d] of Object.entries(S.settings))await store.set('settings',id,d);for(const [id,d] of Object.entries(S.cycles))await store.set('cycles',id,d)}
 async function refresh(quiet){if(store.mode!=='sheet'||S.pending||S.sheet)return;
   try{if(S.dirty){await uploadAll();S.dirty=false}
-    const d=await store.load();S.settings=d.settings||{};S.cycles=d.cycles||{};S.dbState='ok';S.lastSync=new Date();writeLocal();render()}
+    const d=await store.load();S.settings=d.settings||{};S.cycles=d.cycles||{};S.dbState='ok';S.lastSync=new Date();writeLocal();satMigrate();render()}
   catch(e){S.dbState='err';S.err=e.message&&/[ก-๙]/.test(e.message)?e.message:'เชื่อมต่อ Google Sheets ไม่ได้';if(!quiet)render()}}
 function connLink(){const c=store.conn;if(!c)return '';const b=btoa(unescape(encodeURIComponent(JSON.stringify({u:c.u,k:c.k}))));return location.origin+location.pathname+'#connect='+b}
 function connCard(){const c=store.conn||{};const st=store.mode==='sheet'?(S.dbState==='ok'?['pill-good','Google Sheets · ซิงก์แล้ว']:S.dbState==='err'?['pill','เชื่อมต่อไม่ได้']:['pill','กำลังเชื่อม…']):['pill','เก็บในเครื่องนี้เท่านั้น'];
@@ -456,6 +459,23 @@ async function saveCycle(k,mut){const cur=JSON.parse(JSON.stringify(S.cycles[k]|
 async function saveSettings(p,obj,quiet){S.settings[p]=Object.assign({},cfg(S,p),obj);render();
   try{await store.set('settings',p,S.settings[p]);if(!quiet)toast('บันทึกแล้ว')}catch(e){toast(S.err||'บันทึกไม่สำเร็จ');render()}}
 function setDay(p,ds,entry){const k=cycleOf(S,p,parseD(ds));return saveCycle(k,c=>{if(entry)c.days[ds]=entry;else delete c.days[ds]})}
+async function setSat(p,ds,work,both,conv){
+  for(const q of (both?['me','partner']:[p])){
+    const key=q==='me'?'satWork':'satOff';const listed=q==='me'?work:!work;
+    const cur=(cfg(S,q)[key]||[]).filter(x=>x!==ds);if(listed)cur.push(ds);cur.sort();
+    await saveSettings(q,{[key]:cur},true);delete S.mode[q+ds];
+    const e=getDay(S,q,ds);
+    if(conv&&e&&(e.s==='work'||e.s==='hol')){const ns=work?'work':'hol';if(e.s!==ns)await setDay(q,ds,{s:ns,ot:+e.ot||0})}}}
+function satMigrate(){const s=cfg(S,'me');if(s.satMig)return;const sw=new Set(s.satWork||[]);const hm=holMap(S,'me');
+  for(const [k,c] of Object.entries(S.cycles)){if(!k.startsWith('me-')||!c||!c.days)continue;
+    for(const [ds,e] of Object.entries(c.days)){if(e&&e.s==='work'&&parseD(ds).getDay()===6&&!hm[ds])sw.add(ds)}}
+  saveSettings('me',{satWork:[...sw].sort(),satMig:true},true)}
+function satCard(p){const s=cfg(S,p),me=p==='me',list=(me?s.satWork:s.satOff)||[];
+  return `<section class="card"><h2>ปฏิทินเสาร์</h2><div class="row"><span class="small">เสาร์ปกติของ${me?'สง':'ตา'}</span><b>${me?'หยุด':'ทำงาน'}</b></div>
+  <div class="small" style="color:var(--fg2)">${me?'เสาร์ที่ทำงาน':'เสาร์ที่หยุด'}</div>
+  <div class="btns">${list.length?list.map(d=>`<button class="btn soft" type="button" data-act="satdel" data-d="${d}" aria-label="ลบ ${thDate(d)}">${thDate(d)} ✕</button>`).join(''):'<span class="tiny muted">ยังไม่มี</span>'}</div>
+  <div class="btns"><label class="field" style="flex:1 1 150px">เพิ่มวันเสาร์<input id="sat-add" type="date"></label><button class="btn ghost" type="button" data-act="satadd" style="align-self:flex-end">เพิ่ม</button></div>
+  <div class="tiny muted">${me?'เสาร์ที่เพิ่มไว้จะคิดเป็นวันทำงานปกติ (OT 1.5× + ค่าอาหารกลางวัน) · เสาร์อื่นยังเป็นวันหยุด':'เสาร์ที่เพิ่มไว้จะเป็นวันหยุด ไม่คาดการณ์ว่ามาทำงาน · ถ้ามาจะนับเป็นมาวันหยุด'} · แตะวันเสาร์ในปฏิทินเพื่อสลับได้เช่นกัน</div></section>`}
 
 /* ---------- day helpers ---------- */
 function autoMode(p,ds){const e=getDay(S,p,ds);if(e)return e.s;const off=isOffDay(S,p,ds);return off?(p==='me'?'hol':'off'):'work'}
@@ -481,7 +501,7 @@ function calGrid(p,k){
   for(let i=0;i<lead;i++){const d=addDays(first,i-lead);h+=`<div class="cell blank" aria-hidden="true"><span class="n">${d.getDate()}</span></div>`}
   for(const x of ds){const d=parseD(x);const off=isOffDay(S,p,x);const e=c.days&&c.days[x];const hn=hm[x];
     let cls='cell',badge='';
-    if(hn)cls+=' hd';else if(off)cls+=' off';
+    if(hn)cls+=' hd';else if(off)cls+=' off';else if(p==='me'&&d.getDay()===6)cls+=' satw';
     if(e){
       if(p==='me'){if(e.s==='work')badge=+e.ot>0?`<span class="b">${hrs(+e.ot)}</span>`:'<span class="b z">–</span>';
         else if(e.s==='hol'){cls=cls.replace(' off','')+(hn?'':' hd');badge=`<span class="b h">1×${+e.ot>0?'+'+hrs(+e.ot):''}</span>`}
@@ -491,7 +511,8 @@ function calGrid(p,k){
     }else if(hn)badge='<span class="b hn">หยุด</span>';
     else if(!hasActual&&!(x<=last&&off)){
       if(p==='me'){const ex=meExpected(S,x,salaryFor(S,k),st,1);if(ex.likely==='hol')badge='<span class="b f">1×?</span>';else if(typeof ex.likely==='number')badge=`<span class="b f">${hrs(ex.likely)}</span>`}
-      else{const pw=st.p[d.getDay()];if(pw>=0.5)badge=`<span class="b f">${st.avgOt>=0.5?hrs(st.avgOt):'มา'}</span>`}}
+      else{const pw=(off&&d.getDay()===6)?0:st.p[d.getDay()];if(pw>=0.5)badge=`<span class="b f">${st.avgOt>=0.5?hrs(st.avgOt):'มา'}</span>`}}
+    if(!badge&&p==='me'&&cls.includes(' satw'))badge='<span class="b sat">ส.ทำงาน</span>';
     if(x===TODAY)cls+=' today';
     const mo=d.getDate()===1||x===ds[0];
     h+=`<button type="button" class="${cls}" data-act="open" data-d="${x}" aria-label="${thDate(x)}${e?' · '+entryText(p,e):''}"><span class="n${mo?' mo':''}">${mo?d.getDate()+' '+TH_M[d.getMonth()]:d.getDate()}</span>${badge}</button>`}
@@ -500,7 +521,7 @@ function calGrid(p,k){
   const summaryOnly=hasActual&&!lk.length;
   return `<div class="dows"><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span><span>อา</span></div><div class="grid">${h}</div>
   ${summaryOnly?`<div class="note">รอบนี้มีแค่ยอดรวม${c.slip&&c.slip.gross?'จากสลิป':'จากไฟล์ Excel'} ไม่มีข้อมูลรายวัน</div>`:''}
-  <div class="legend">${p==='me'?'<span><i class="sw" style="background:var(--me)"></i>OT ชม.</span><span><i class="sw" style="background:var(--hol)"></i>มาวันหยุด</span>':'<span><i class="sw" style="background:var(--pt-soft);border:1px solid var(--pt-mid)"></i>มาทำงาน</span><span><i class="sw" style="background:var(--pt)"></i>OT ชม.</span><span><i class="sw" style="background:var(--bad-soft)"></i>ลา</span>'}<span><i class="sw" style="border:1px dashed var(--ac-mid)"></i>คาดการณ์</span><span><i class="sw" style="background:var(--hol-soft);border:1px solid var(--hol-line)"></i>วันหยุดประเพณี</span></div>`}
+  <div class="legend">${p==='me'?'<span><i class="sw" style="background:var(--me)"></i>OT ชม.</span><span><i class="sw" style="background:var(--hol)"></i>มาวันหยุด</span><span><i class="sw" style="border:1.5px solid var(--ac-mid)"></i>เสาร์ทำงาน</span>':'<span><i class="sw" style="background:var(--pt-soft);border:1px solid var(--pt-mid)"></i>มาทำงาน</span><span><i class="sw" style="background:var(--pt)"></i>OT ชม.</span><span><i class="sw" style="background:var(--bad-soft)"></i>ลา</span>'}<span><i class="sw" style="border:1px dashed var(--ac-mid)"></i>คาดการณ์</span><span><i class="sw" style="background:var(--hol-soft);border:1px solid var(--hol-line)"></i>วันหยุดประเพณี</span></div>`}
 function todayCard(p){
   const ds=TODAY,e=getDay(S,p,ds),off=isOffDay(S,p,ds),hn=holMap(S,p)[ds];
   const head=`<div class="row"><b style="font-size:16px">วันนี้ ${thDate(ds)}</b><span class="tiny muted">${hn?esc(hn):off?'วันหยุด':'วันทำงาน'}</span></div>`;
@@ -535,6 +556,8 @@ function sheetHTML(){if(!S.sheet)return '';if(S.sheet.ex)return exSheetHTML();co
   const mode=S.mode[p+ds]||autoMode(p,ds);const k=cycleOf(S,p,parseD(ds));
   const opts=p==='me'?[['work','ทำงาน'],['hol','มาวันหยุด'],['off','หยุด / ลา']]:[['work','มาทำงาน'],['hol','มาวันหยุด'],['off','หยุด'],['sick','ลาป่วย'],['leave','ลากิจ'],['vac','ลาพักร้อน']];
   const seg=`<div class="seg" role="group" aria-label="สถานะ" style="grid-template-columns:repeat(${p==='me'?3:3},minmax(0,1fr))">${opts.map(([v,l])=>`<button type="button" data-act="mode" data-v="${v}" aria-pressed="${mode===v}">${l}</button>`).join('')}</div>`;
+  const isSat=parseD(ds).getDay()===6&&!hn;
+  const satSeg=isSat?`<div class="seg" role="group" aria-label="ประเภทวันเสาร์" style="grid-template-columns:repeat(2,minmax(0,1fr))"><button type="button" data-act="satset" data-v="off" aria-pressed="${off}">เสาร์หยุด</button><button type="button" data-act="satset" data-v="work" aria-pressed="${!off}">เสาร์ทำงาน</button></div><label class="small" style="display:flex;gap:10px;align-items:center;min-height:44px"><input type="checkbox" data-act="satboth" ${S.satBoth?'checked':''}> ตั้งให้${p==='me'?'ตา':'สง'}เป็นแบบเดียวกันด้วย</label>`:'';
   let body='';
   if(mode==='work'||mode==='hol'){
     const vals=p==='me'?[0,0.5,1,1.5,2,2.5,3,3.5]:[0,1,1.5,2,2.5,3,3.5,4];const cur=e&&e.s===mode?+e.ot||0:null;
@@ -554,7 +577,7 @@ function sheetHTML(){if(!S.sheet)return '';if(S.sheet.ex)return exSheetHTML();co
       res+=`<div class="total"><span>ได้วันนั้น</span><span class="big">${B(r.wage+r.ot+r.allow,2)}</span></div>`}}
   return `<div class="scrim" data-act="close"></div><div class="sheet ${PCLS(p)}" role="dialog" aria-modal="true" aria-label="${thDate(ds)}"><div class="in"><div class="grab"></div>
   <div class="row" style="align-items:center"><div><b style="font-size:20px">${thDate(ds)}</b><div class="tiny muted">${p==='me'?'ของสง':'ของตา'} · ${hn?esc(hn):off?'วันหยุด':'วันทำงาน'}</div></div><button class="x" type="button" data-act="close" aria-label="ปิด" id="sheetclose">✕</button></div>
-  ${seg}${body}${e?`<div class="calc">${res}</div><div class="row"><span class="good small" style="font-weight:600">✓ บันทึกแล้ว</span><button class="btn link" type="button" data-act="clear">ล้างวันนี้</button></div>`:'<div class="tiny muted">แตะจำนวนชั่วโมงแล้วบันทึกทันที</div>'}</div></div>`}
+  ${satSeg}${seg}${body}${e?`<div class="calc">${res}</div><div class="row"><span class="good small" style="font-weight:600">✓ บันทึกแล้ว</span><button class="btn link" type="button" data-act="clear">ล้างวันนี้</button></div>`:'<div class="tiny muted">แตะจำนวนชั่วโมงแล้วบันทึกทันที</div>'}</div></div>`}
 
 /* ---------- summary tab ---------- */
 function renderSum(){
@@ -826,7 +849,7 @@ function expenseCard(k,r){const {rec,once}=exList(k);
   <label class="field">หมวด<select id="ex-cat">${cats.map(x=>`<option>${x}</option>`).join('')}</select></label><label class="field full">ความถี่<select id="ex-rec"><option value="1">ทุกเดือน</option><option value="0">เฉพาะรอบนี้</option></select></label></div>
   <button class="btn" type="button" data-act="exadd" data-k="${k}">+ เพิ่ม</button></div></section>`}
 function pasteCard(){const r=S.pasteRes;
-  return `<details class="card"${r?' open':''}><summary>ลืมติกหลายวัน? วางตารางลงเวลา</summary><div class="tiny muted">คัดลอกตารางเวลาเข้า–ออกจากระบบบริษัทมาวาง ระบบอ่านประเภทวันกับเวลาออก ออกหลัง 17:30 นับ OT ปัดลงทีละ 30 นาที</div>
+  return `<details class="card"${r?' open':''}><summary>ลืมติกหลายวัน? วางตารางลงเวลา</summary><div class="tiny muted">คัดลอกตารางเวลาเข้า–ออกจากระบบบริษัทมาวาง ระบบอ่านประเภทวันกับเวลาออก ออกหลัง 17:30 นับ OT ปัดลงทีละ 30 นาที · แถววันเสาร์ที่เป็น “วันทำงาน” ระบบจะตั้งเป็นเสาร์ทำงานให้</div>
   <label class="field">ข้อมูลที่วาง<textarea id="paste" rows="4" style="font-size:12px;white-space:pre;overflow-x:auto" placeholder="06/10/2026  MLNA  D 08:00 - 17:00  วันทำงาน  08:00 - 17:00  07:05 - 20:02"></textarea></label>
   ${r?`<div class="calc"><div class="line"><span>อ่านได้ ${r.items.length} วัน</span><span>OT ${r.items.filter(i=>i.e.s==='work'&&i.e.ot>0).length} วัน · มาวันหยุด ${r.items.filter(i=>i.e.s==='hol').length} วัน</span></div></div>`:''}
   <div class="btns"><button class="btn ghost" type="button" data-act="pasteread">อ่านข้อมูล</button>${r&&r.items.length?`<button class="btn" type="button" data-act="pasteapply">นำเข้า ${r.items.length} วัน</button>`:''}</div></details>`}
@@ -847,7 +870,7 @@ function renderSet(){const p=S.person;const N=(id,l,v,st='1')=>`<label class="fi
     <div class="tiny muted">เบี้ยขยันหลุดเมื่อลาป่วยหรือลากิจ · ลาพักร้อนไม่หลุด (ได้ค่าแรงปกติ)</div>
     <label class="small" style="display:flex;gap:10px;align-items:center;min-height:44px"><input id="ps-ph" type="checkbox" ${s.paidHoliday?'checked':''}> วันหยุดประเพณีได้ค่าแรง</label>
     <button class="btn" type="button" data-act="ptsave">บันทึก</button></section>`}
-  return `${topBar('ตั้งค่า',personSeg())}${banner()}${themeCard(p)}${connCard()}${f}`}
+  return `${topBar('ตั้งค่า',personSeg())}${banner()}${themeCard(p)}${connCard()}${f}${satCard(p)}`}
 
 /* ---------- render ---------- */
 const ICON={cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
@@ -882,6 +905,10 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
   case 'quick':{const ds=t.dataset.d,s=t.dataset.s,v=+(t.dataset.v||0);const e=(s==='work'||s==='hol')?{s,ot:v}:{s};await setDay(p,ds,e);
     toast(`บันทึก ${thDate(ds)} · ${entryText(p,e)}`);if(p==='partner'&&LOSE.includes(s))toast(`บันทึก${s==='sick'?'ลาป่วย':'ลากิจ'}แล้ว เบี้ยขยันรอบนี้หลุด`);break}
   case 'mode':S.mode[p+S.sheet.d]=t.dataset.v;render();break;
+  case 'satboth':S.satBoth=t.checked;break;
+  case 'satset':{const ds=S.sheet.d,w=t.dataset.v==='work';await setSat(p,ds,w,!!S.satBoth,true);toast(`${thDate(ds)} เป็นเสาร์${w?'ทำงาน':'หยุด'}แล้ว${S.satBoth?' (ทั้งสองคน)':''}`);break}
+  case 'satadd':{const v=((document.getElementById('sat-add')||{}).value||'');if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('เลือกวันที่ก่อน');break}if(parseD(v).getDay()!==6){toast('วันที่นี้ไม่ใช่วันเสาร์');break}await setSat(p,v,p==='me',false,false);toast('เพิ่มแล้ว');break}
+  case 'satdel':await setSat(p,t.dataset.d,p!=='me',false,false);toast('ลบแล้ว');break;
   case 'hours':{const ds=S.sheet.d;const mode=S.mode[p+ds]||autoMode(p,ds);const s=mode==='hol'?'hol':'work';const v=+t.dataset.v;await setDay(p,ds,{s,ot:v});toast(`บันทึก ${thDate(ds)} · ${entryText(p,{s,ot:v})}`);break}
   case 'custom':{const ds=S.sheet.d;const v=num('cust');if(v==null||v<0||v>16){toast('ใส่ชั่วโมงระหว่าง 0–16');break}const mode=S.mode[p+ds]||autoMode(p,ds);const s=mode==='hol'?'hol':'work';const ot=Math.round(v*2)/2;
     await setDay(p,ds,{s,ot});const el=document.getElementById('cust');if(el)el.value='';toast(`บันทึก ${thDate(ds)} · ${entryText(p,{s,ot})}`);break}
@@ -890,7 +917,9 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
   case 'dil':await saveCycle(t.dataset.k,c=>{if(t.dataset.v==='auto')delete c.diligence;else c.diligence=t.dataset.v});break;
   case 'pasteread':{const txt=(document.getElementById('paste')||{}).value||'';const items=parseAttendance(txt,'17:30');S.pasteRes={items};if(!items.length)toast('ไม่พบวันที่ในข้อมูลที่วาง');render();break}
   case 'pasteapply':{const items=(S.pasteRes||{}).items||[];const by={};for(const i of items){const k=cycleOf(S,'me',parseD(i.ds));(by[k]=by[k]||[]).push(i)}
-    for(const [k,xs] of Object.entries(by))await saveCycle(k,c=>{for(const i of xs)c.days[i.ds]=i.e});S.pasteRes=null;const el=document.getElementById('paste');if(el)el.value='';toast(`นำเข้า ${items.length} วันแล้ว`);render();break}
+    for(const [k,xs] of Object.entries(by))await saveCycle(k,c=>{for(const i of xs)c.days[i.ds]=i.e});
+    {const sw=new Set(cfg(S,'me').satWork||[]),hm=holMap(S,'me');let ch=false;for(const i of items){if(parseD(i.ds).getDay()!==6||hm[i.ds])continue;if(i.e.s==='work'){if(!sw.has(i.ds)){sw.add(i.ds);ch=true}}else if(sw.has(i.ds)){sw.delete(i.ds);ch=true}}if(ch)await saveSettings('me',{satWork:[...sw].sort()},true)}
+    S.pasteRes=null;const el=document.getElementById('paste');if(el)el.value='';toast(`นำเข้า ${items.length} วันแล้ว`);render();break}
   case 'slippick':{const el=document.getElementById('slipimg');if(el){el.value='';el.click()}break}
   case 'slipform':{const k=t.dataset.k;S.slipForm={k,v:Object.assign({},(S.cycles[k]||{}).slip||{}),from:'manual'};render();break}
   case 'slipcancel':S.slipForm=null;render();break;
@@ -974,6 +1003,7 @@ document.addEventListener('change',async ev=>{const t=ev.target;if(t.id!=='slipi
 (function(){const h=location.hash;if(h.startsWith('#connect=')){try{const c=JSON.parse(decodeURIComponent(escape(atob(h.slice(9)))));if(c&&c.u&&c.k){writeConn(c);store.conn=c;setTimeout(()=>toast('เชื่อมต่อ Google Sheets แล้ว'),300)}}catch(e){setTimeout(()=>toast('ลิงก์เชื่อมต่อไม่ถูกต้อง'),300)}
   try{history.replaceState(null,'',location.pathname+location.search+'#cal')}catch(e){location.hash='#cal'}S.tab='cal'}})();
 {const c=readLocal();S.settings=c.settings||{};S.cycles=c.cycles||{};S.dbState=store.mode==='local'?'local':'loading'}
+if(store.mode==='local')satMigrate();
 render();refresh();
 setInterval(()=>{if(document.visibilityState==='visible')refresh(true)},30000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh(true)});
