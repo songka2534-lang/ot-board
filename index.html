@@ -225,6 +225,42 @@ details[open] > summary::after{content:"ซ่อน"}
 .hero-b.ph .hb-who{align-items:flex-end;text-align:right}
 .tha.img{background-size:cover;background-position:left center}
 .tha.add{display:flex;align-items:center;justify-content:center;border-bottom:1px dashed var(--line2);color:var(--ac-ink);font-size:22px;font-weight:600}
+
+.hb-art.kb{animation:hbKB 26s ease-in-out infinite alternate;transform-origin:30% 50%}
+@keyframes hbKB{from{transform:scale(1.03) translate(0,0)}to{transform:scale(1.12) translate(-3%,-2%)}}
+.hb-fx{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.hb-fx i{position:absolute;display:block}
+.fx-tw{width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 6px 1px rgba(255,255,255,.8);animation:hbTw var(--d) ease-in-out var(--dl) infinite}
+@keyframes hbTw{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1.2)}}
+.fx-sh{top:8%;left:-20%;width:90px;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(255,255,255,0),#fff);transform:rotate(18deg);animation:hbSh 9s ease-in var(--dl) infinite;opacity:0}
+@keyframes hbSh{0%{transform:translate(0,0) rotate(18deg);opacity:0}2%{opacity:1}12%{transform:translate(520px,170px) rotate(18deg);opacity:0}100%{opacity:0}}
+.fx-pt{width:10px;height:13px;border-radius:70% 0 70% 0;background:rgba(255,255,255,.88);top:-16px;animation:hbFall var(--d) linear var(--dl) infinite}
+@keyframes hbFall{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(30px,120px) rotate(170deg)}100%{transform:translate(-10px,250px) rotate(340deg)}}
+.fx-fl{width:5px;height:5px;border-radius:50%;background:#FFF6C2;box-shadow:0 0 8px 2px rgba(255,240,170,.75);bottom:10%;animation:hbFloat var(--d) ease-in-out var(--dl) infinite;opacity:0}
+@keyframes hbFloat{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(24px,-150px);opacity:0}}
+.fx-cl{height:34px;width:120px;border-radius:40px;background:rgba(255,255,255,.75);filter:blur(5px);animation:hbDrift var(--d) linear var(--dl) infinite;left:-140px}
+@keyframes hbDrift{to{transform:translateX(calc(100vw + 300px))}}
+.fx-wv{left:0;width:200%;height:100%;animation:hbFlow var(--d) linear infinite}
+@keyframes hbFlow{to{transform:translateX(-50%)}}
+.fx-dot{width:6px;height:6px;border-radius:50%;background:#7DD3FC;box-shadow:0 0 8px 2px rgba(125,211,252,.9);animation:hbRun var(--d) linear var(--dl) infinite;opacity:0}
+@keyframes hbRun{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(var(--x));opacity:0}}
+.fx-bd{width:16px;height:8px;animation:hbBird var(--d) linear var(--dl) infinite;left:-30px}
+@keyframes hbBird{0%{transform:translate(0,0)}50%{transform:translate(50vw,-12px)}100%{transform:translate(calc(100vw + 60px),4px)}}
+.fx-rot{animation:hbRot var(--d) linear infinite}
+@keyframes hbRot{to{transform:rotate(360deg)}}
+.fx-bob{animation:hbBob var(--d) ease-in-out var(--dl) infinite alternate}
+@keyframes hbBob{from{transform:translateY(-5px) rotate(-6deg)}to{transform:translateY(6px) rotate(8deg)}}
+.fx-au{width:60%;height:60%;border-radius:50%;filter:blur(30px);opacity:.55;animation:hbAu var(--d) ease-in-out var(--dl) infinite alternate}
+@keyframes hbAu{from{transform:translate(-10%,0) scale(1)}to{transform:translate(25%,10%) scale(1.25)}}
+.fx-glow{border-radius:50%;filter:blur(18px);animation:hbGlow 5s ease-in-out infinite alternate}
+@keyframes hbGlow{from{opacity:.35;transform:scale(.9)}to{opacity:.8;transform:scale(1.15)}}
+.fx-sweep{top:0;bottom:0;width:40%;left:-50%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.22),rgba(255,255,255,0));animation:hbSweep 7s ease-in-out 1s infinite}
+@keyframes hbSweep{0%{transform:translateX(0)}35%,100%{transform:translateX(420%)}}
+@media (prefers-reduced-motion:reduce){.hb-art.kb,.hb-fx i{animation:none!important}}
+
+.sw-t{width:52px;height:30px;border-radius:15px;border:0;background:var(--line2);position:relative;flex:none;padding:0}
+.sw-t i{position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:12px;background:#fff;transition:transform .15s}
+.sw-t[aria-checked="true"]{background:var(--ac)} .sw-t[aria-checked="true"] i{transform:translateX(22px)}
 </style>
 </head>
 <body>
@@ -398,6 +434,7 @@ const today=new Date();const TODAY=ymd(today);const YEAR=today.getFullYear();
 const TABS=['cal','sum','slip','set'];
 const tabFromHash=()=>{const h=(location.hash||'').replace('#','');return TABS.includes(h)?h:'cal'};
 S.tab=tabFromHash();
+try{S.anim=localStorage.getItem('otb-anim')!=='0'}catch(e){S.anim=true}
 try{const v=localStorage.getItem('otb-scn');if(v&&SCN[v])S.scenario=v;const pp=localStorage.getItem('otb-person');if(pp==='me'||pp==='partner')S.person=pp}catch(e){}
 
 const fmt=(x,d=0)=>(x==null||isNaN(x))?'–':Number(x).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -787,18 +824,42 @@ function bannerSVG(id,seed){
 
 function photoOf(p){const v=(S.settings[p+'-photo']||{}).img;return typeof v==='string'&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v)?v:''}
 function themeOf(p){const t=cfg(S,p).theme;if(t==='photo')return photoOf(p)?'photo':(p==='me'?'lens':'sakura');return t==='none'||PATTERNS.some(x=>x.id===t)?t:(p==='me'?'lens':'sakura')}
-function heroHead(p,k,ha){const t=themeOf(p);const L=cycleLabel(k);
+
+function animLayer(id,seed){
+  let s=(seed||9)>>>0;const R=()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};
+  const rr=(a,b)=>(a+R()*(b-a)).toFixed(2);let h='';
+  const tw=(n,y1)=>{for(let i=0;i<n;i++)h+=`<i class="fx-tw" style="left:${rr(2,98)}%;top:${rr(3,y1)}%;--d:${rr(2.2,5)}s;--dl:-${rr(0,5)}s"></i>`};
+  const fl=(n,c)=>{for(let i=0;i<n;i++)h+=`<i class="fx-fl" style="left:${rr(5,95)}%;--d:${rr(6,11)}s;--dl:-${rr(0,10)}s${c?';background:'+c:''}"></i>`};
+  const clouds=n=>{for(let i=0;i<n;i++)h+=`<i class="fx-cl" style="top:${rr(4,48)}%;transform:scale(${rr(.6,1.3)});--d:${rr(38,70)}s;--dl:-${rr(0,60)}s"></i>`};
+  if(['night','galaxy','milky','aurora'].includes(id)){tw(id==='aurora'?10:18,id==='milky'?62:80);h+=`<i class="fx-sh" style="--dl:${rr(1,4)}s"></i>`}
+  if(id==='aurora'){h+=`<i class="fx-au" style="left:0;top:5%;background:#34D399;--d:9s;--dl:0s"></i><i class="fx-au" style="left:35%;top:0;background:#A78BFA;--d:12s;--dl:-4s"></i>`}
+  if(id==='sakura'){for(let i=0;i<14;i++)h+=`<i class="fx-pt" style="left:${rr(0,100)}%;--d:${rr(7,12)}s;--dl:-${rr(0,12)}s;transform:scale(${rr(.6,1.1)})"></i>`}
+  if(['rain','forest','grass'].includes(id)){fl(12);h+=`<i class="fx-glow" style="left:${id==='forest'?38:52}%;top:42%;width:90px;height:90px;margin:-45px;background:#FFF5BF"></i>`}
+  if(['sky','field'].includes(id))clouds(4);
+  if(id==='wave'){let d='';for(let x=0;x<=780;x+=10)d+=`${x?'L':'M'}${x} ${(60+10*Math.sin(x/62*Math.PI)).toFixed(1)} `;h+=`<i class="fx-wv" style="--d:14s;top:20%"><svg width="100%" height="100%" viewBox="0 0 780 150" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2"/><path d="${d}" transform="translate(0 34)" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="1.5"/></svg></i>`}
+  if(id==='chip'){for(let i=0;i<7;i++)h+=`<i class="fx-dot" style="left:${rr(0,40)}%;top:${rr(10,90)}%;--x:${rr(120,260)}px;--d:${rr(3,6)}s;--dl:-${rr(0,6)}s"></i>`}
+  if(id==='dusk'){for(let i=0;i<4;i++)h+=`<i class="fx-bd" style="top:${rr(8,36)}%;--d:${rr(16,26)}s;--dl:-${rr(0,20)}s"><svg viewBox="0 0 16 8" width="16" height="8"><path d="M0 2 Q4 -1 8 4 Q12 -1 16 2" fill="none" stroke="#fff" stroke-width="1.6"/></svg></i>`;fl(5,'#FFE29A')}
+  if(id==='lens'){h+=`<i class="fx-rot" style="right:2%;top:-6%;width:150px;height:150px;--d:30s"><svg viewBox="0 0 100 100" width="150" height="150"><circle cx="50" cy="50" r="46" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2" stroke-dasharray="3 6"/><circle cx="50" cy="50" r="30" fill="none" stroke="#fff" stroke-opacity=".25" stroke-dasharray="10 5"/></svg></i>`;fl(6,'#E0F4FF')}
+  if(id==='print'){h+=`<i class="fx-rot" style="right:10%;top:12%;width:110px;height:110px;--d:24s"><svg viewBox="0 0 100 100" width="110" height="110"><circle cx="50" cy="50" r="40" fill="none" stroke="#fff" stroke-opacity=".5" stroke-dasharray="6 6" stroke-width="1.5"/></svg></i>`}
+  if(id==='geo'||id==='memph'){const c=id==='memph'?'#1E1B4B':'#fff';for(let i=0;i<6;i++){const k=i%3;h+=`<i class="fx-bob" style="left:${rr(30,95)}%;top:${rr(8,70)}%;--d:${rr(3,6)}s;--dl:-${rr(0,4)}s"><svg width="18" height="18" viewBox="0 0 20 20">${k===0?`<circle cx="10" cy="10" r="7" fill="none" stroke="${c}" stroke-width="1.6"/>`:k===1?`<polygon points="10,3 17,16 3,16" fill="none" stroke="${c}" stroke-width="1.6"/>`:`<rect x="4" y="4" width="12" height="12" fill="none" stroke="${c}" stroke-width="1.6"/>`}</svg></i>`}}
+  if(id==='photo'){h+=`<i class="fx-sweep"></i>`;fl(6,'rgba(255,255,255,.9)')}
+  return h?`<div class="hb-fx" aria-hidden="true">${h}</div>`:''}
+
+function animOn(){return S.anim!==false}
+function hkHash(s){let h=5381;for(let i=0;i<s.length;i+=3)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)+s.length}
+function heroHead(p,k,ha){const h=heroHead0(p,k,ha);return h.replace('<header ',`<header data-hk="${hkHash(h)}" `)}
+function heroHead0(p,k,ha){const t=themeOf(p);const L=cycleLabel(k);
   const inner=`<div class="hb-in"><div class="hb-top"><span class="hb-app">OT Board</span>${personSeg()}</div>
   <div class="hb-bot"><div class="hb-who"><b>${p==='me'?'สง':'ตา'}</b><div class="hb-cyc"><button class="hb-ar" type="button" data-act="cyc" data-n="-1" aria-label="รอบก่อน">‹</button><span>${L.name}</span><button class="hb-ar" type="button" data-act="cyc" data-n="1" aria-label="รอบถัดไป">›</button></div>
   <span class="hb-rng">${L.range}${k!==curKey(p)?` · <button class="hb-now" type="button" data-act="cycnow">กลับรอบปัจจุบัน</button>`:''}</span></div>
   <div class="hb-amt"><span>${ha?ha[0]:''}</span><b>${ha?B(ha[1]):''}</b></div></div></div>`;
   if(t==='none')return `<header class="hero-b none">${inner}</header>`;
-  if(t==='photo')return `<header class="hero-b ph"><div class="hb-mask"><div class="hb-art hb-img" style="background-image:url('${photoOf(p)}')"></div><div class="hb-veil ph"></div></div>${inner}</header>`;
+  if(t==='photo')return `<header class="hero-b ph"><div class="hb-mask"><div class="hb-art hb-img${animOn()?' kb':''}" style="background-image:url('${photoOf(p)}')"></div>${animOn()?animLayer('photo',7):''}<div class="hb-veil ph"></div></div>${inner}</header>`;
   const P=PATTERNS.find(x=>x.id===t);const dk=P.ink!=='#FFFFFF';const g=P.v||P.g[0];
-  return `<header class="hero-b${dk?' dk':''}" style="--hv:${g}E6;--hv2:${g}99;--hv3:${g}80;--hv0:${g}00"><div class="hb-mask"><div class="hb-art">${bannerSVG(t,p==='me'?11:5)}</div><div class="hb-veil"></div></div>${inner}</header>`}
+  return `<header class="hero-b${dk?' dk':''}" style="--hv:${g}E6;--hv2:${g}99;--hv3:${g}80;--hv0:${g}00"><div class="hb-mask"><div class="hb-art${animOn()?' kb':''}">${bannerSVG(t,p==='me'?11:5)}</div>${animOn()?animLayer(t,p==='me'?11:5):''}<div class="hb-veil"></div></div>${inner}</header>`}
 function themeCard(p){const cur=themeOf(p);const ph=photoOf(p);const opts=[{id:'photo',name:ph?'รูปของฉัน':'+ ใช้รูปตัวเอง'},{id:'none',name:'ไม่ใช้ลาย'}].concat(PATTERNS);
   return `<section class="card"><div class="row"><h2>ลายหัวแอปของ${p==='me'?'สง':'ตา'}</h2><span class="tiny muted">${opts.length} แบบ · แตะเพื่อเปลี่ยน</span></div><div class="thg">${opts.map((x,i)=>`<button type="button" class="tht" data-act="${x.id==='photo'&&!ph?'photopick':'theme'}" data-v="${x.id}" aria-pressed="${x.id===cur}">${x.id==='photo'?(ph?`<span class="tha img" style="background-image:url('${ph}')" aria-hidden="true"></span>`:'<span class="tha add" aria-hidden="true">+</span>'):x.id==='none'?'<span class="tha none" aria-hidden="true">⌀</span>':`<span class="tha">${bannerSVG(x.id,20+i)}</span>`}<span class="thn">${x.name}</span>${x.id===cur?'<i class="thc" aria-hidden="true">✓</i>':''}</button>`).join('')}</div>
-  <input id="photoimg" type="file" accept="image/*" hidden>${ph?`<div class="btns"><button class="btn soft" type="button" data-act="photopick">เปลี่ยนรูป</button><button class="btn link" type="button" data-act="photodel">ลบรูป</button></div>`:''}
+  <div class="row" style="align-items:center"><span class="small">หัวแอปเคลื่อนไหว <span class="tiny muted">· ตั้งแยกแต่ละเครื่อง</span></span><button type="button" class="sw-t" role="switch" aria-checked="${animOn()}" data-act="animtog" aria-label="หัวแอปเคลื่อนไหว"><i></i></button></div><input id="photoimg" type="file" accept="image/*" hidden>${ph?`<div class="btns"><button class="btn soft" type="button" data-act="photopick">เปลี่ยนรูป</button><button class="btn link" type="button" data-act="photodel">ลบรูป</button></div>`:''}
   <div class="tiny muted">สงกับตาเลือกลายแยกกัน · สลับปุ่ม สง/ตา ด้านบนเพื่อเลือกของอีกคน · รูปแนวยาวสวยสุด (หน้าอยู่ซ้าย) · รูปเก็บใน Google Sheet ไม่ขึ้น GitHub</div></section>`}
 /* ---------- slip tab ---------- */
 function renderSlip(){const p=S.person,k=selKey(p);
@@ -879,11 +940,12 @@ const ICON={cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>'};
 function tabBar(){const L={cal:'ปฏิทิน',sum:'สรุป',slip:S.person==='me'?'สลิป':'สรุปรอบ',set:'ตั้งค่า'};return `<div class="tabbar"><nav aria-label="เมนู">${TABS.map(t=>`<a href="#${t}" ${S.tab===t?'aria-current="page"':''}>${ICON[t]}${L[t]}</a>`).join('')}</nav></div>`}
 const KEEP=['ex-e-name','ex-e-amt','ex-e-cat','paste','ex-name','ex-amt','ex-cat','ex-rec','cust','cn-u','cn-k'];
-function render(){const app=document.getElementById('app');const keep={};for(const id of KEEP){const el=document.getElementById(id);if(el)keep[id]=el.value}
+function render(){const app=document.getElementById('app');const oldHero=app.querySelector('.hero-b');const keep={};for(const id of KEEP){const el=document.getElementById(id);if(el)keep[id]=el.value}
   const det=[...document.querySelectorAll('details')].map(d=>d.open);const sy=window.scrollY;
   let body='';try{body=S.tab==='cal'?renderCal():S.tab==='sum'?renderSum():S.tab==='slip'?renderSlip():renderSet()}catch(e){console.error(e);body=`<div class="banner">แสดงผลไม่ได้: ${esc(e.message)}</div>`}
   app.className=S.tab==='sum'?'p-me':PCLS(S.person);
   app.innerHTML=`<div class="app">${body}</div>${tabBar()}${sheetHTML()}`;
+  {const nh=app.querySelector('.hero-b');if(oldHero&&nh&&oldHero.dataset.hk&&oldHero.dataset.hk===nh.dataset.hk)nh.replaceWith(oldHero)}
   for(const id of KEEP){const el=document.getElementById(id);if(el&&keep[id]!=null)el.value=keep[id]}
   const ds=[...document.querySelectorAll('details')];det.forEach((v,i)=>{if(ds[i]&&v)ds[i].open=true});
   if(Math.abs(window.scrollY-sy)>2)window.scrollTo(0,sy)}
@@ -932,6 +994,7 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
     if(rec){const xp=splitKey(t.dataset.k).p;await saveSettings(xp,{expenses:[...(cfg(S,xp).expenses||[]),item]},true)}else await saveCycle(t.dataset.k,c=>{c.oneOff=[...(c.oneOff||[]),item]});toast('เพิ่มรายจ่ายแล้ว');break}
   case 'photopick':{const el=document.getElementById('photoimg');if(el){el.value='';el.click()}break}
   case 'photodel':{await saveSettings(p+'-photo',{img:''},true);if(cfg(S,p).theme==='photo')await saveSettings(p,{theme:p==='me'?'lens':'sakura'},true);toast('ลบรูปแล้ว');break}
+  case 'animtog':S.anim=!animOn();try{localStorage.setItem('otb-anim',S.anim?'1':'0')}catch(e){}render();toast(S.anim?'เปิดหัวแอปเคลื่อนไหวแล้ว':'ปิดหัวแอปเคลื่อนไหวแล้ว');break;
   case 'theme':await saveSettings(p,{theme:t.dataset.v},true);toast('เปลี่ยนลายแล้ว');break;
   case 'hrswho':S.hrsWho=t.dataset.v;S.hrsOpen=null;render();break;
   case 'hrsrow':{const m=+t.dataset.m;const ck=hrsData(S.hrsWho||S.person,YEAR).find(r=>r.cur);const cur=S.hrsOpen==null?(ck?ck.m:12):S.hrsOpen;S.hrsOpen=cur===m?0:m;render();break}
