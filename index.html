@@ -261,6 +261,17 @@ details[open] > summary::after{content:"ซ่อน"}
 .sw-t{width:52px;height:30px;border-radius:15px;border:0;background:var(--line2);position:relative;flex:none;padding:0}
 .sw-t i{position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:12px;background:#fff;transition:transform .15s}
 .sw-t[aria-checked="true"]{background:var(--ac)} .sw-t[aria-checked="true"] i{transform:translateX(22px)}
+
+/* paid ticks */
+.xr{display:flex;align-items:center;gap:2px;border-top:1px solid var(--line)} .xr .xe{border-top:0;flex:1;min-width:0}
+.ck{width:44px;height:44px;flex:none;border:0;background:none;display:flex;align-items:center;justify-content:center;padding:0;margin-left:-8px}
+.ck i{width:26px;height:26px;border-radius:8px;border:2px solid var(--faint);display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;color:#fff;font-size:15px;background:var(--surface)}
+.ck[aria-checked="true"] i{background:var(--good);border-color:var(--good)}
+.xn{display:flex;flex-direction:column;min-width:0;text-align:left;padding:4px 0} .xs{font-size:11px;color:var(--bad)}
+.xr.pd .xs{color:var(--good)} .xr.pd .xn>span:first-child,.xr.pd .am{color:var(--muted)}
+.xfs{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:4px}
+.xfs button{min-height:36px;font-size:13px;font-weight:600} .xfs button.due{color:var(--bad)} .xfs button.pdn{color:var(--good)}
+.xfs button[aria-pressed="true"]{color:var(--on-ac)}
 </style>
 </head>
 <body>
@@ -899,12 +910,17 @@ function expenseCard(k,r){const {rec,once}=exList(k);
   const total=rec.concat(once).reduce((a,x)=>a+x.amt,0);
   const groups={};for(const x of rec)(groups[x.cat||'อื่นๆ']=groups[x.cat||'อื่นๆ']||[]).push(x);
   const cats=EXCATS;const left=r.net-total;
-  const item=x=>`<button type="button" class="xe" data-act="exedit" data-k="${k}" data-id="${esc(x.id)}" data-kind="${x.kind}" aria-label="แก้ ${esc(x.name)} ${B(x.amt)}"><span>${esc(x.name)}${x.ovr?'<span class="tag">แก้เฉพาะรอบนี้</span>':''}</span><span class="am">${B(x.amt)}${PEN}</span></button>`;
+  const paid=(S.cycles[k]||{}).paid||{};const all=rec.concat(once);const nPaid=all.filter(x=>paid[x.id]).length,nDue=all.length-nPaid;const fl=S.exf||'all';
+  const show=x=>fl==='all'||(fl==='paid')===!!paid[x.id];
+  const pdTxt=x=>{const d=paid[x.id];if(!d)return 'ยังไม่จ่าย';const t=typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)?parseD(d):null;return 'จ่ายแล้ว'+(t?' '+t.getDate()+' '+TH_M[t.getMonth()]:'')};
+  const item=x=>`<div class="xr${paid[x.id]?' pd':''}"><button type="button" class="ck" role="checkbox" aria-checked="${!!paid[x.id]}" data-act="expaid" data-k="${k}" data-id="${esc(x.id)}" aria-label="${esc(x.name)} จ่ายแล้ว"><i>${paid[x.id]?'✓':''}</i></button><button type="button" class="xe" data-act="exedit" data-k="${k}" data-id="${esc(x.id)}" data-kind="${x.kind}" aria-label="แก้ ${esc(x.name)} ${B(x.amt)}"><span class="xn"><span>${esc(x.name)}${x.ovr?'<span class="tag">แก้เฉพาะรอบนี้</span>':''}</span><span class="xs">${pdTxt(x)}</span></span><span class="am">${B(x.amt)}${PEN}</span></button></div>`;
   return `<section class="card"><div class="row"><h2>${splitKey(k).p==='me'?'รายจ่ายรอบนี้':'รายจ่ายของตา'}</h2><b>${B(total)}</b></div>
   <div class="calc"><div class="total" style="border:0;padding:0"><span>คงเหลือ (สุทธิ − รายจ่าย)</span><span class="big ${left<0?'badc':''}">${B(left,2)}</span></div></div>
-  <div>${Object.entries(groups).map(([g,xs])=>`<div class="sec row"><span>${esc(g)}</span><span>${B(xs.reduce((a,x)=>a+x.amt,0))}</span></div>${xs.map(item).join('')}`).join('')}
-  ${once.length?`<div class="sec row"><span>เฉพาะรอบนี้</span><span>${B(once.reduce((a,x)=>a+x.amt,0))}</span></div>${once.map(item).join('')}`:''}
-  ${!rec.length&&!once.length?'<div class="note">ยังไม่มีรายจ่าย เพิ่มรายการแรกด้านล่าง</div>':'<div class="tiny muted" style="padding-top:6px">แตะรายการเพื่อแก้จำนวนเงิน</div>'}</div>
+  ${all.length?`<div class="seg xfs" role="group" aria-label="แสดงรายการ">${[['all','ทั้งหมด '+all.length,''],['due','ค้าง '+nDue,'due'],['paid','จ่ายแล้ว '+nPaid,'pdn']].map(([v,l,c])=>`<button type="button" class="${c}" data-act="exf" data-v="${v}" aria-pressed="${fl===v}">${l}</button>`).join('')}</div>`:''}
+  <div>${Object.entries(groups).filter(([g,xs])=>xs.some(show)).map(([g,xs])=>`<div class="sec row"><span>${esc(g)}</span><span>${B(xs.reduce((a,x)=>a+x.amt,0))}</span></div>${xs.filter(show).map(item).join('')}`).join('')}
+  ${once.some(show)?`<div class="sec row"><span>เฉพาะรอบนี้</span><span>${B(once.reduce((a,x)=>a+x.amt,0))}</span></div>${once.filter(show).map(item).join('')}`:''}
+  ${all.length&&!all.some(show)?`<div class="note">${fl==='due'?'จ่ายครบทุกรายการแล้ว':'ยังไม่ได้ติกจ่ายรายการไหน'}</div>`:''}
+  ${!rec.length&&!once.length?'<div class="note">ยังไม่มีรายจ่าย เพิ่มรายการแรกด้านล่าง</div>':'<div class="tiny muted" style="padding-top:6px">แตะช่องสี่เหลี่ยมเพื่อติกว่าจ่ายแล้ว · แตะชื่อรายการเพื่อแก้จำนวนเงิน · ขึ้นรอบใหม่ทุกรายการกลับเป็นยังไม่จ่าย</div>'}</div>
   <div style="border:1px dashed var(--ac-mid);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px"><b class="small">เพิ่มรายจ่าย</b>
   <div class="fields"><label class="field full">ชื่อรายการ<input id="ex-name" type="text" placeholder="เช่น ค่ามือถือ"></label><label class="field">จำนวนเงิน<input id="ex-amt" type="number" inputmode="decimal" placeholder="0"></label>
   <label class="field">หมวด<select id="ex-cat">${cats.map(x=>`<option>${x}</option>`).join('')}</select></label><label class="field full">ความถี่<select id="ex-rec"><option value="1">ทุกเดือน</option><option value="0">เฉพาะรอบนี้</option></select></label></div>
@@ -995,6 +1011,8 @@ document.addEventListener('click',async ev=>{const t=ev.target.closest('[data-ac
   case 'photopick':{const el=document.getElementById('photoimg');if(el){el.value='';el.click()}break}
   case 'photodel':{await saveSettings(p+'-photo',{img:''},true);if(cfg(S,p).theme==='photo')await saveSettings(p,{theme:p==='me'?'lens':'sakura'},true);toast('ลบรูปแล้ว');break}
   case 'animtog':S.anim=!animOn();try{localStorage.setItem('otb-anim',S.anim?'1':'0')}catch(e){}render();toast(S.anim?'เปิดหัวแอปเคลื่อนไหวแล้ว':'ปิดหัวแอปเคลื่อนไหวแล้ว');break;
+  case 'exf':S.exf=t.dataset.v;render();break;
+  case 'expaid':{const id=t.dataset.id;let now=false;await saveCycle(t.dataset.k,c=>{c.paid=Object.assign({},c.paid||{});if(c.paid[id])delete c.paid[id];else{c.paid[id]=TODAY;now=true}});toast(now?'ติกจ่ายแล้ว':'เอาติกออกแล้ว');break}
   case 'theme':await saveSettings(p,{theme:t.dataset.v},true);toast('เปลี่ยนลายแล้ว');break;
   case 'hrswho':S.hrsWho=t.dataset.v;S.hrsOpen=null;render();break;
   case 'hrsrow':{const m=+t.dataset.m;const ck=hrsData(S.hrsWho||S.person,YEAR).find(r=>r.cur);const cur=S.hrsOpen==null?(ck?ck.m:12):S.hrsOpen;S.hrsOpen=cur===m?0:m;render();break}
