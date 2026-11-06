@@ -256,6 +256,39 @@ details[open] > summary::after{content:"ซ่อน"}
 @keyframes hbGlow{from{opacity:.35;transform:scale(.9)}to{opacity:.8;transform:scale(1.15)}}
 .fx-sweep{top:0;bottom:0;width:40%;left:-50%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.22),rgba(255,255,255,0));animation:hbSweep 7s ease-in-out 1s infinite}
 @keyframes hbSweep{0%{transform:translateX(0)}35%,100%{transform:translateX(420%)}}
+.fx-rn{width:1.5px;height:20px;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.75));top:-30px;animation:hbRn var(--d) linear var(--dl) infinite}
+@keyframes hbRn{to{transform:translate(-30px,280px)}}
+.fx-sn{width:var(--s);height:var(--s);border-radius:50%;background:#fff;opacity:.9;top:-10px;animation:hbSn var(--d) linear var(--dl) infinite}
+@keyframes hbSn{25%{transform:translate(14px,70px)}50%{transform:translate(-8px,135px)}75%{transform:translate(12px,200px)}100%{transform:translate(0,270px)}}
+.fx-ff{width:5px;height:5px;border-radius:50%;background:#E8FF8A;box-shadow:0 0 10px 3px rgba(214,255,120,.8);animation:hbFF var(--d) ease-in-out var(--dl) infinite alternate}
+@keyframes hbFF{0%{transform:translate(0,0);opacity:.1}30%{opacity:1}60%{transform:translate(var(--x),var(--y));opacity:.3}100%{transform:translate(calc(var(--x)*-.6),calc(var(--y)*.7));opacity:1}}
+.fx-rise{bottom:-60px;animation:hbRise var(--d) linear var(--dl) infinite}
+@keyframes hbRise{0%{transform:translate(0,0);opacity:0}10%{opacity:1}50%{transform:translate(var(--x),-150px)}90%{opacity:1}100%{transform:translate(0,-300px);opacity:0}}
+.fx-bub{border-radius:50%;border:1.3px solid rgba(255,255,255,.8);background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.7),rgba(255,255,255,.08) 40%,rgba(180,200,255,.15))}
+.fx-lt{width:14px;height:18px;border-radius:5px 5px 7px 7px;background:radial-gradient(circle at 50% 70%,#FFE9A8,#F59E3B 70%);box-shadow:0 0 14px 4px rgba(255,170,80,.55)}
+.fx-swim{animation:hbRot var(--d) linear infinite}
+.fx-rip{border-radius:50%;border:1.5px solid rgba(255,255,255,.6);animation:hbRip 5s ease-out var(--dl) infinite;opacity:0}
+@keyframes hbRip{0%{transform:scale(.2);opacity:.8}100%{transform:scale(2.4);opacity:0}}
+.fx-ray{top:-20%;width:40px;height:150%;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0));transform-origin:top center;animation:hbRay var(--d) ease-in-out var(--dl) infinite alternate}
+@keyframes hbRay{from{transform:rotate(-14deg);opacity:.35}to{transform:rotate(10deg);opacity:.8}}
+.fx-fish{animation:hbFish var(--d) linear var(--dl) infinite;left:-40px}
+@keyframes hbFish{0%{transform:translate(0,0)}50%{transform:translate(50vw,-10px)}100%{transform:translate(calc(100vw + 80px),6px)}}
+.fx-sway{transform-origin:50% 100%;animation:hbSway var(--d) ease-in-out var(--dl) infinite alternate}
+@keyframes hbSway{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+.fx-fog{height:40px;width:260px;border-radius:50%;background:rgba(255,255,255,.55);filter:blur(14px);left:-280px;animation:hbDrift var(--d) linear var(--dl) infinite}
+.fx-sun{border-radius:50%;animation:hbSunUp 30s ease-in-out infinite alternate}
+@keyframes hbSunUp{from{transform:translateY(26px)}to{transform:translateY(-8px)}}
+.fx-bk{border-radius:50%;filter:blur(1.5px);animation:hbBk var(--d) ease-in-out var(--dl) infinite}
+@keyframes hbBk{0%,100%{opacity:0;transform:scale(.7)}50%{opacity:var(--o);transform:scale(1)}}
+.fx-bf{animation:hbBf var(--d) ease-in-out var(--dl) infinite;left:-30px}
+@keyframes hbBf{0%{transform:translate(0,0)}25%{transform:translate(25vw,-30px)}50%{transform:translate(50vw,10px)}75%{transform:translate(75vw,-25px)}100%{transform:translate(calc(100vw + 60px),0)}}
+.fx-bf svg .w{transform-origin:50% 50%;animation:hbFlap .28s ease-in-out infinite alternate}
+@keyframes hbFlap{from{transform:scaleX(1)}to{transform:scaleX(.25)}}
+.fx-fw{animation:hbBurst var(--d) ease-out var(--dl) infinite;opacity:0}
+@keyframes hbBurst{0%{transform:scale(.1);opacity:0}8%{opacity:1}60%{transform:scale(1);opacity:.8}100%{transform:scale(1.1);opacity:0}}
+.fx-grad{inset:-50%;background:linear-gradient(120deg,#A18CD1,#FBC2EB,#8EC5FC,#E0C3FC,#A18CD1);background-size:300% 300%;opacity:.55;animation:hbGrad 16s ease-in-out infinite alternate}
+@keyframes hbGrad{from{background-position:0% 50%}to{background-position:100% 50%}}
+.fx-lv{border-radius:50%;filter:blur(18px);animation:hbAu var(--d) ease-in-out var(--dl) infinite alternate}
 @media (prefers-reduced-motion:reduce){.hb-art.kb,.hb-fx i{animation:none!important}}
 
 .sw-t{width:52px;height:30px;border-radius:15px;border:0;background:var(--line2);position:relative;flex:none;padding:0}
@@ -716,7 +749,27 @@ const PATTERNS=[
  {id:'sky',   name:'ฟ้าทะเล',       g:['#2E86DE','#CDEBFA'], v:'#1F6FC0', ink:'#FFFFFF', vert:1},
  {id:'field', name:'ทุ่งหญ้าฟ้าใส',   g:['#2B7FDA','#A9D8F7'], v:'#1F68B8', ink:'#FFFFFF', vert:1},
  {id:'milky', name:'ทางช้างเผือก',    g:['#0A0F2A','#241A4A'], ink:'#FFFFFF', vert:1},
- {id:'galaxy',name:'ดาวเต็มฟ้า',     g:['#04060E','#0F1A36'], ink:'#FFFFFF'}
+ {id:'galaxy',name:'ดาวเต็มฟ้า',     g:['#04060E','#0F1A36'], ink:'#FFFFFF'},
+ {id:'drizzle',name:'ฝนพรำ',        g:['#4E6A86','#9FB3C8'], v:'#3F5A75', ink:'#FFFFFF', vert:1},
+ {id:'snow',   name:'หิมะโปรย',      g:['#2B3A67','#8E9FD1'], v:'#2B3A67', ink:'#FFFFFF', vert:1},
+ {id:'firefly',name:'หิ่งห้อย',       g:['#06201A','#174A35'], ink:'#FFFFFF', vert:1},
+ {id:'bubble', name:'ฟองสบู่',       g:['#F7B7DD','#A6C1EE'], v:'#9A78C6', ink:'#FFFFFF'},
+ {id:'koi',    name:'บ่อบัว',        g:['#0E5A5F','#2A9D8F'], v:'#0B4A4E', ink:'#FFFFFF'},
+ {id:'ocean',  name:'ใต้ทะเล',       g:['#1471B8','#032A57'], v:'#0A3D73', ink:'#FFFFFF', vert:1},
+ {id:'lantern',name:'โคมลอย',       g:['#0B1236','#4A2350'], ink:'#FFFFFF', vert:1},
+ {id:'sunflwr',name:'ทุ่งทานตะวัน',    g:['#6DBDF0','#C6EBFB'], v:'#2F86C2', ink:'#FFFFFF', vert:1},
+ {id:'mist',   name:'ภูเขาหมอก',     g:['#C9D6E3','#7D93AC'], v:'#4C6680', ink:'#FFFFFF', vert:1},
+ {id:'sunrise',name:'ทะเลยามเช้า',    g:['#FFC48C','#F07F7F'], v:'#B5525C', ink:'#FFFFFF', vert:1},
+ {id:'balloon',name:'บอลลูน',        g:['#8EC5FC','#E0C3FC'], v:'#5A8FD0', ink:'#FFFFFF', vert:1},
+ {id:'autumn', name:'ใบไม้ร่วง',      g:['#F6C85F','#F28B5B'], v:'#C8642A', ink:'#FFFFFF'},
+ {id:'lava',   name:'ลาวาแลมป์',     g:['#FF9A8B','#FF6A88'], v:'#D9536F', ink:'#FFFFFF'},
+ {id:'bokeh',  name:'แสงไฟเมือง',     g:['#1A1033','#3A1C5C'], ink:'#FFFFFF'},
+ {id:'lavendr',name:'ทุ่งลาเวนเดอร์',   g:['#AFA0E6','#F1D7EA'], v:'#6F5BC0', ink:'#FFFFFF', vert:1},
+ {id:'firewk', name:'ดอกไม้ไฟ',      g:['#070B24','#1B1446'], ink:'#FFFFFF', vert:1},
+ {id:'boat',   name:'เรือกระดาษ',     g:['#9EC2FA','#CDEFFC'], v:'#4F82CF', ink:'#FFFFFF', vert:1},
+ {id:'bfly',   name:'สวนผีเสื้อ',      g:['#C9EF7C','#86D99A'], v:'#3E8C4D', ink:'#FFFFFF'},
+ {id:'pastel', name:'ไล่สีละมุน',      g:['#A18CD1','#FBC2EB'], v:'#7E62C2', ink:'#FFFFFF'},
+ {id:'moon',   name:'คืนจันทร์เต็มดวง', g:['#0F2A43','#2C5364'], ink:'#FFFFFF', vert:1}
 ];
 function bannerSVG(id,seed){
   const P=PATTERNS.find(p=>p.id===id)||PATTERNS[0];const W=390,H=150;
@@ -831,6 +884,36 @@ function bannerSVG(id,seed){
     b+=stars(220,0,H,.9);
     b+=`<g transform="rotate(-8 195 78)"><ellipse cx="195" cy="78" rx="230" ry="30" fill="#5B7BD5" fill-opacity=".22" filter="${g1}"/><ellipse cx="230" cy="80" rx="140" ry="18" fill="#D9B48A" fill-opacity=".45" filter="${g1}"/><ellipse cx="250" cy="82" rx="70" ry="9" fill="#F3DDBE" fill-opacity=".55" filter="${g2}"/><path d="M60 84 Q160 70 260 86 T400 80" stroke="#05070F" stroke-opacity=".55" stroke-width="5" fill="none" filter="${g2}"/></g>`;
     b+=stars(140,55,105,1)}
+
+  const hills=(base,amp,col,o,step)=>{let d=`M0 ${H}`;for(let x=0;x<=W+step;x+=step)d+=` L${x} ${f(base-rr(0,amp))}`;return `<path d="${d} L${W} ${H}Z" fill="${col}" fill-opacity="${o}"/>`};
+  const smooth=(base,amp,col,o,ph)=>{let d=`M0 ${H} L0 ${f(base)}`;for(let x=0;x<=W;x+=10)d+=` L${x} ${f(base-amp*(.5+.5*Math.sin(x/70+ph))*(.6+.4*Math.sin(x/23+ph*2)))}`;return `<path d="${d} L${W} ${H}Z" fill="${col}" fill-opacity="${o}"/>`};
+  if(id==='drizzle'){b+=`<g filter="${blur('k',10)}">`;for(let i=0;i<10;i++)b+=`<circle cx="${f(rr(0,W))}" cy="${f(rr(70,150))}" r="${f(rr(8,22))}" fill="${['#FFE3A3','#BFD7EA','#FFFFFF'][i%3]}" fill-opacity="${f(rr(.25,.5))}"/>`;b+='</g>';
+    for(let i=0;i<40;i++){const x=f(rr(0,W)),y=f(rr(0,H)),r=rr(1.2,3.2);b+=`<ellipse cx="${x}" cy="${y}" rx="${f(r*.8)}" ry="${f(r)}" fill="#fff" fill-opacity=".22"/><circle cx="${f(+x-r*.25)}" cy="${f(+y-r*.3)}" r="${f(r*.25)}" fill="#fff" fill-opacity=".7"/>`}}
+  if(id==='snow'){b+=stars(30,0,70,.6)+smooth(118,22,'#DCE6F7',.75,1)+smooth(132,14,'#F4F8FF',1,3);
+    for(let i=0;i<7;i++){const x=rr(20,380),y=rr(108,128),h2=rr(16,28);b+=`<polygon points="${f(x)},${f(y-h2)} ${f(x-h2*.32)},${f(y)} ${f(x+h2*.32)},${f(y)}" fill="#1F3550" fill-opacity=".75"/>`}}
+  if(id==='firefly'){b+=`<circle cx="320" cy="34" r="40" fill="#CFF7C8" fill-opacity=".12" filter="${blur('s',16)}"/>`+hills(120,26,'#0A2A1E',.9,14)+blades(80,118,30,['#0B3324','#123D2B','#082419'])}
+  if(id==='bubble'){for(let i=0;i<9;i++){const x=f(rr(150,380)),y=f(rr(10,140)),r=rr(8,26);b+=`<circle cx="${x}" cy="${y}" r="${f(r)}" fill="#fff" fill-opacity=".1" stroke="#fff" stroke-opacity=".7" stroke-width="1.2"/><path d="M${f(+x-r*.55)} ${f(+y-r*.2)} a${f(r*.6)} ${f(r*.6)} 0 0 1 ${f(r*.45)} ${f(-r*.45)}" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>`}}
+  if(id==='koi'){for(let i=0;i<5;i++)b+=`<ellipse cx="${f(rr(0,W))}" cy="${f(rr(0,H))}" rx="${f(rr(30,70))}" ry="${f(rr(8,18))}" fill="#fff" fill-opacity=".05"/>`;
+    [[300,40,22],[350,112,16],[230,128,13],[70,128,14],[178,30,10]].forEach(([x,y,r])=>{b+=`<path d="M${x} ${y} L${f(x+r)} ${f(y-3)} A${r} ${r} 0 1 1 ${f(x+r)} ${f(y+3)}Z" fill="#3E8E4E"/><path d="M${x} ${y} L${f(x+r*.8)} ${y}" stroke="#2D6E3B" stroke-width="1"/>`});
+    const lot=(x,y)=>{let g='';for(let i=0;i<6;i++)g+=`<ellipse cx="${x}" cy="${y-8}" rx="4.5" ry="10" fill="${i%2?'#F7A8C8':'#FBC9DC'}" transform="rotate(${i*60-150} ${x} ${y})"/>`;return g+`<circle cx="${x}" cy="${y}" r="3.5" fill="#F9D56E"/>`};b+=lot(300,38)+lot(232,126)}
+  if(id==='ocean'){b+=`<path d="M0 132 Q100 124 200 134 T390 128 L390 150 L0 150Z" fill="#C9B27C" fill-opacity=".8"/>`;
+    for(let i=0;i<7;i++){const x=rr(10,380);let d=`M${f(x)} 150`;for(let y=146;y>100+rr(0,20);y-=8)d+=` Q${f(x+(y%16?6:-6))} ${y-4} ${f(x)} ${y-8}`;b+=`<path d="${d}" stroke="#2E8B57" stroke-width="3" fill="none" stroke-linecap="round"/>`}}
+  if(id==='lantern'){b+=stars(60,0,100,.8)+`<ellipse cx="195" cy="150" rx="260" ry="34" fill="#F59E5B" fill-opacity=".35" filter="${blur('g',14)}"/>`+hills(140,12,'#0B0B1A',.95,20)}
+  if(id==='sunflwr'){b+=cloud(80,30,1.1,.9)+cloud(300,22,.9,.85)+`<rect y="108" width="${W}" height="42" fill="#5BA33A"/>`;
+    for(let i=0;i<28;i++){const x=rr(-5,W+5),y=rr(100,150),r=rr(4,9)*(1+(y-100)/60);let g='';for(let k=0;k<10;k++)g+=`<ellipse cx="${f(x)}" cy="${f(y-r)}" rx="${f(r*.32)}" ry="${f(r*.7)}" fill="#FFC928" transform="rotate(${k*36} ${f(x)} ${f(y)})"/>`;b+=g+`<circle cx="${f(x)}" cy="${f(y)}" r="${f(r*.45)}" fill="#6B3E1E"/>`}}
+  if(id==='mist'){b+=hills(70,26,'#9FB2C7',.7,30)+hills(92,24,'#8197B0',.8,26)+hills(112,22,'#66809D',.9,24)+hills(132,16,'#4F6987',1,22)+`<circle cx="300" cy="40" r="16" fill="#FFF" fill-opacity=".6" filter="${blur('s',4)}"/>`}
+  if(id==='sunrise'){b+=`<rect y="104" width="${W}" height="46" fill="#3B5B92"/><rect y="104" width="${W}" height="46" fill="url(#${uid}g)" fill-opacity=".25"/>`;for(let i=0;i<14;i++)b+=`<rect x="${f(rr(150,300))}" y="${f(rr(108,146))}" width="${f(rr(10,40))}" height="1.5" fill="#FFE1B0" fill-opacity="${f(rr(.3,.7))}"/>`}
+  if(id==='balloon'){b+=cloud(60,110,1.4,.8)+cloud(220,128,1.1,.7)+cloud(350,100,1.2,.75)}
+  if(id==='autumn'){b+=`<path d="M390 0 Q330 30 250 26 Q300 18 330 0Z M330 22 Q300 40 270 52" fill="none" stroke="#5A3A22" stroke-width="5" stroke-linecap="round"/>`;
+    for(let i=0;i<26;i++){const x=rr(250,395),y=rr(-5,50);b+=`<path d="M${f(x)} ${f(y)} q6 -8 12 0 q-6 8 -12 0z" fill="${['#E2582C','#F2A33A','#C9381A','#F7C04A'][i%4]}" transform="rotate(${f(rr(0,360))} ${f(x)} ${f(y)})" transform-origin="${f(x)} ${f(y)}"/>`}}
+  if(id==='lava'){b+=`<g filter="${blur('l',22)}"><circle cx="300" cy="40" r="50" fill="#FFD3A5" fill-opacity=".7"/><circle cx="90" cy="120" r="46" fill="#C471F5" fill-opacity=".45"/></g>`}
+  if(id==='bokeh'){let d=`M0 ${H}`;for(let x=0;x<=W;x+=rr(14,30)){const t=rr(104,138);d+=` L${f(x)} ${f(t)} L${f(x+12)} ${f(t)}`}b+=`<path d="${d} L${W} ${H}Z" fill="#0B0618"/>`;for(let i=0;i<30;i++)b+=`<rect x="${f(rr(0,W))}" y="${f(rr(118,148))}" width="2" height="2" fill="#FFD27A" fill-opacity="${f(rr(.4,.9))}"/>`}
+  if(id==='lavendr'){b+=hills(84,10,'#9C8AD8',.6,40)+`<rect y="90" width="${W}" height="60" fill="#8B6FD1"/>`;for(let i=0;i<14;i++){const x0=-260+i*48;b+=`<path d="M195 90 L${x0} 150" stroke="#C4A7F0" stroke-width="${f(3+i%3)}" stroke-opacity=".7"/>`}for(let i=0;i<60;i++)b+=`<ellipse cx="${f(rr(0,W))}" cy="${f(rr(95,150))}" rx="1.6" ry="4" fill="#5B3FA8" fill-opacity=".8"/>`}
+  if(id==='firewk'){b+=stars(40,0,90,.6);let d=`M0 ${H}`;for(let x=0;x<=W;x+=rr(16,32)){const t=rr(114,140);d+=` L${f(x)} ${f(t)} L${f(x+14)} ${f(t)}`}b+=`<path d="${d} L${W} ${H}Z" fill="#05060F"/>`}
+  if(id==='boat'){for(let i=0;i<14;i++){const y=f(rr(70,150));b+=`<path d="M${f(rr(-40,300))} ${y} q20 -3 40 0 t40 0" stroke="#fff" stroke-opacity="${f(rr(.25,.6))}" stroke-width="1.4" fill="none"/>`}b+=`<circle cx="320" cy="34" r="22" fill="#FFF7D6" fill-opacity=".8" filter="${blur('s',5)}"/>`}
+  if(id==='bfly'){b+=blades(70,118,32,['#4E9F3D','#6CC04A','#3C8A31']);const fl=(x,y,c)=>{let g='';for(let i=0;i<5;i++)g+=`<ellipse cx="${x}" cy="${y-5}" rx="3.5" ry="6" fill="${c}" transform="rotate(${i*72} ${x} ${y})"/>`;return g+`<circle cx="${x}" cy="${y}" r="2.6" fill="#FFE066"/>`};for(let i=0;i<14;i++)b+=fl(f(rr(10,380)),f(rr(108,146)),['#FF8FB1','#FFFFFF','#B48CF2','#FFB86B'][i%4])}
+  if(id==='pastel'){b+=`<g filter="${blur('p',26)}"><circle cx="320" cy="30" r="60" fill="#FAD0C4" fill-opacity=".8"/><circle cx="120" cy="130" r="60" fill="#8EC5FC" fill-opacity=".55"/></g>`}
+  if(id==='moon'){b+=stars(70,0,H,.8)+`<circle cx="300" cy="52" r="46" fill="#FDF6D8" fill-opacity=".25" filter="${blur('m',14)}"/><circle cx="300" cy="52" r="24" fill="#FBF3D0"/><circle cx="292" cy="46" r="4" fill="#E9DDB0"/><circle cx="306" cy="60" r="3" fill="#E9DDB0"/><circle cx="310" cy="44" r="2" fill="#E9DDB0"/>`+hills(142,10,'#0A1A2A',.9,24)}
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" aria-hidden="true"><defs>${defs}</defs><rect width="${W}" height="${H}" fill="url(#${uid}g)"/>${b}</svg>`}
 
 function photoOf(p){const v=(S.settings[p+'-photo']||{}).img;return typeof v==='string'&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v)?v:''}
@@ -854,8 +937,35 @@ function animLayer(id,seed){
   if(id==='print'){h+=`<i class="fx-rot" style="right:10%;top:12%;width:110px;height:110px;--d:24s"><svg viewBox="0 0 100 100" width="110" height="110"><circle cx="50" cy="50" r="40" fill="none" stroke="#fff" stroke-opacity=".5" stroke-dasharray="6 6" stroke-width="1.5"/></svg></i>`}
   if(id==='geo'||id==='memph'){const c=id==='memph'?'#1E1B4B':'#fff';for(let i=0;i<6;i++){const k=i%3;h+=`<i class="fx-bob" style="left:${rr(30,95)}%;top:${rr(8,70)}%;--d:${rr(3,6)}s;--dl:-${rr(0,4)}s"><svg width="18" height="18" viewBox="0 0 20 20">${k===0?`<circle cx="10" cy="10" r="7" fill="none" stroke="${c}" stroke-width="1.6"/>`:k===1?`<polygon points="10,3 17,16 3,16" fill="none" stroke="${c}" stroke-width="1.6"/>`:`<rect x="4" y="4" width="12" height="12" fill="none" stroke="${c}" stroke-width="1.6"/>`}</svg></i>`}}
   if(id==='photo'){h+=`<i class="fx-sweep"></i>`;fl(6,'rgba(255,255,255,.9)')}
-  return h?`<div class="hb-fx" aria-hidden="true">${h}</div>`:''}
 
+  const rise=(n,html,dur,x0,x1)=>{for(let i=0;i<n;i++)h+=`<i class="fx-rise" style="left:${rr(x0,x1)}%;--x:${rr(-25,25)}px;--d:${rr(dur[0],dur[1])}s;--dl:-${rr(0,dur[1])}s">${html(i)}</i>`};
+  if(id==='drizzle'){for(let i=0;i<34;i++)h+=`<i class="fx-rn" style="left:${rr(0,110)}%;--d:${rr(.7,1.3)}s;--dl:-${rr(0,1.3)}s;opacity:${rr(.4,.9)}"></i>`}
+  if(id==='snow'){for(let i=0;i<30;i++)h+=`<i class="fx-sn" style="left:${rr(0,100)}%;--s:${rr(2,5)}px;--d:${rr(8,15)}s;--dl:-${rr(0,15)}s"></i>`}
+  if(id==='firefly'){for(let i=0;i<16;i++)h+=`<i class="fx-ff" style="left:${rr(5,95)}%;top:${rr(30,85)}%;--x:${rr(-40,40)}px;--y:${rr(-30,20)}px;--d:${rr(3,7)}s;--dl:-${rr(0,6)}s"></i>`}
+  if(id==='bubble'){rise(12,()=>{const z=rr(10,30);return `<i class="fx-bub" style="position:static;width:${z}px;height:${z}px"></i>`},[9,16],5,95)}
+  if(id==='koi'){const fish=(c1,c2)=>`<svg width="34" height="14" viewBox="0 0 34 14"><path d="M2 7 Q10 0 22 4 Q28 6 30 7 Q28 8 22 10 Q10 14 2 7Z" fill="${c1}"/><path d="M22 4 L33 1 L29 7 L33 13 L22 10Z" fill="${c1}" opacity=".85"/><circle cx="9" cy="6" r="2.4" fill="${c2}"/><circle cx="15" cy="9" r="1.8" fill="${c2}"/></svg>`;
+    h+=`<i class="fx-swim" style="left:30%;top:20%;width:120px;height:120px;--d:22s"><i style="left:0;top:50%">${fish('#F28C38','#fff')}</i></i><i class="fx-swim" style="left:50%;top:0;width:90px;height:90px;--d:16s;animation-direction:reverse"><i style="left:0;top:45%;transform:scaleX(-1)">${fish('#FFFFFF','#E4572E')}</i></i>`;
+    for(let i=0;i<4;i++)h+=`<i class="fx-rip" style="left:${rr(10,90)}%;top:${rr(20,80)}%;width:40px;height:40px;--dl:-${rr(0,5)}s"></i>`}
+  if(id==='ocean'){for(let i=0;i<5;i++)h+=`<i class="fx-ray" style="left:${rr(10,90)}%;--d:${rr(5,9)}s;--dl:-${rr(0,8)}s"></i>`;rise(10,()=>{const z=rr(4,9);return `<i class="fx-bub" style="position:static;width:${z}px;height:${z}px"></i>`},[6,11],10,90);
+    for(let i=0;i<3;i++)h+=`<i class="fx-fish" style="top:${rr(30,70)}%;--d:${rr(18,30)}s;--dl:-${rr(0,25)}s"><svg width="18" height="8" viewBox="0 0 18 8"><path d="M0 4 Q6 0 12 4 Q6 8 0 4Z M12 4 L18 0 L18 8Z" fill="#FFD166"/></svg></i>`}
+  if(id==='lantern'){rise(11,()=>`<i class="fx-lt" style="position:static;transform:scale(${rr(.55,1.1)})"></i>`,[14,24],8,95)}
+  if(id==='sunflwr'){for(let i=0;i<5;i++){const z=rr(26,40);h+=`<i class="fx-sway" style="left:${rr(45,95)}%;bottom:${rr(4,22)}%;--d:${rr(2.5,4)}s;--dl:-${rr(0,3)}s"><svg width="${z}" height="${+z*1.6}" viewBox="0 0 40 64"><path d="M20 30 L20 64" stroke="#3D7A25" stroke-width="3"/>${Array.from({length:12},(_,k)=>`<ellipse cx="20" cy="9" rx="4" ry="9" fill="#FFC928" transform="rotate(${k*30} 20 20)"/>`).join('')}<circle cx="20" cy="20" r="7" fill="#6B3E1E"/></svg></i>`};fl(6,'#FFF3B0')}
+  if(id==='mist'){for(let i=0;i<5;i++)h+=`<i class="fx-fog" style="top:${rr(30,75)}%;--d:${rr(40,70)}s;--dl:-${rr(0,60)}s"></i>`}
+  if(id==='sunrise'){h+=`<i class="fx-sun" style="left:52%;top:46%;width:60px;height:60px;background:radial-gradient(circle,#FFF4C2 0%,#FFD27A 55%,rgba(255,200,120,0) 72%)"></i>`;for(let i=0;i<12;i++)h+=`<i class="fx-tw" style="left:${rr(35,80)}%;top:${rr(72,96)}%;--d:${rr(1.5,3)}s;--dl:-${rr(0,3)}s"></i>`}
+  if(id==='balloon'){const bl=(c,z)=>`<svg width="${z}" height="${z*1.45}" viewBox="0 0 40 58"><path d="M20 2 C34 2 38 14 36 22 C34 32 24 38 22 44 L18 44 C16 38 6 32 4 22 C2 14 6 2 20 2Z" fill="${c}"/><path d="M20 2 C26 8 26 36 21 44 M20 2 C14 8 14 36 19 44" stroke="#fff" stroke-opacity=".5" fill="none"/><rect x="16" y="48" width="8" height="7" rx="1.5" fill="#8A5A2B"/><path d="M18 44 L17 48 M22 44 L23 48" stroke="#8A5A2B"/></svg>`;
+    [['#FF6B6B',30],['#FFD166',22],['#4ECDC4',26],['#B388EB',18]].forEach(([c,z],i)=>h+=`<i class="fx-bob" style="left:${[40,62,80,92][i]}%;top:${[18,50,8,40][i]}%;--d:${rr(4,7)}s;--dl:-${rr(0,5)}s">${bl(c,z)}</i>`)}
+  if(id==='autumn'){for(let i=0;i<14;i++)h+=`<i class="fx-pt" style="left:${rr(0,100)}%;--d:${rr(7,12)}s;--dl:-${rr(0,12)}s;background:${['#E2582C','#F2A33A','#C9381A','#F7C04A'][i%4]};border-radius:80% 0 80% 0;width:12px;height:12px"></i>`}
+  if(id==='lava'){[['#FFD3A5',30,10,140],['#FD6585',60,40,120],['#C471F5',10,50,110],['#FFF6B7',75,0,90]].forEach(([c,l,t,z],i)=>h+=`<i class="fx-lv" style="left:${l}%;top:${t}%;width:${z}px;height:${z}px;background:${c};opacity:.7;--d:${rr(8,13)}s;--dl:-${rr(0,8)}s"></i>`)}
+  if(id==='bokeh'){for(let i=0;i<18;i++){const z=rr(14,44);h+=`<i class="fx-bk" style="left:${rr(0,100)}%;top:${rr(0,70)}%;width:${z}px;height:${z}px;background:${['rgba(255,200,120,.6)','rgba(255,120,180,.55)','rgba(140,170,255,.55)'][i%3]};--o:${rr(.4,.9)};--d:${rr(4,8)}s;--dl:-${rr(0,8)}s"></i>`}}
+  const bf=c=>`<svg width="22" height="18" viewBox="0 0 22 18"><g class="w"><path d="M11 9 C6 0 0 2 2 8 C3 12 8 11 11 9Z M11 9 C16 0 22 2 20 8 C19 12 14 11 11 9Z" fill="${c}"/><path d="M11 9 C7 12 4 17 7 17 C9 17 10 13 11 9Z M11 9 C15 12 18 17 15 17 C13 17 12 13 11 9Z" fill="${c}" opacity=".8"/></g><rect x="10.3" y="5" width="1.4" height="9" rx=".7" fill="#3A2A1C"/></svg>`;
+  if(id==='lavendr'){for(let i=0;i<4;i++)h+=`<i class="fx-bf" style="top:${rr(15,60)}%;--d:${rr(14,22)}s;--dl:-${rr(0,20)}s">${bf(['#FFFFFF','#FFD6E8','#FFF3B0','#E9D5FF'][i])}</i>`}
+  if(id==='bfly'){for(let i=0;i<5;i++)h+=`<i class="fx-bf" style="top:${rr(10,60)}%;--d:${rr(12,20)}s;--dl:-${rr(0,18)}s">${bf(['#FF8FB1','#FFB86B','#7FB2FF','#B48CF2','#FFE066'][i])}</i>`;fl(5,'#FFFBE0')}
+  if(id==='firewk'){for(let i=0;i<5;i++){const c=['#FFD166','#FF6B9A','#7FDBFF','#B8F28C','#FFFFFF'][i],z=rr(70,120);h+=`<i class="fx-fw" style="left:${rr(30,85)}%;top:${rr(5,40)}%;width:${z}px;height:${z}px;margin:-${(z/2).toFixed(0)}px;--d:${rr(2.6,3.6)}s;--dl:-${rr(0,3.5)}s"><svg viewBox="0 0 100 100" width="100%" height="100%">${Array.from({length:14},(_,k)=>{const a=k*Math.PI/7;return `<line x1="${(50+12*Math.cos(a)).toFixed(1)}" y1="${(50+12*Math.sin(a)).toFixed(1)}" x2="${(50+46*Math.cos(a)).toFixed(1)}" y2="${(50+46*Math.sin(a)).toFixed(1)}" stroke="${c}" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="3 6"/>`}).join('')}</svg></i>`};tw(10,60)}
+  if(id==='boat'){const bt=(c,z)=>`<svg width="${z}" height="${z*.7}" viewBox="0 0 40 28"><path d="M2 16 L38 16 L32 26 L8 26Z" fill="${c}"/><path d="M20 2 L20 16 L8 16Z" fill="#fff"/><path d="M20 2 L32 16 L20 16Z" fill="${c}" opacity=".75"/></svg>`;
+    [['#FFFFFF',38,55,52],['#FFE7A3',28,75,66],['#FFC6D9',24,88,48]].forEach(([c,z,l,t])=>h+=`<i class="fx-bob" style="left:${l}%;top:${t}%;--d:${rr(2.5,4)}s;--dl:-${rr(0,3)}s">${bt(c,z)}</i>`);for(let i=0;i<3;i++)h+=`<i class="fx-rip" style="left:${rr(50,90)}%;top:${rr(60,80)}%;width:50px;height:14px;--dl:-${rr(0,5)}s"></i>`}
+  if(id==='pastel'){h+=`<i class="fx-grad"></i>`;fl(8,'rgba(255,255,255,.95)')}
+  if(id==='moon'){tw(16,70);h+=`<i class="fx-glow" style="left:77%;top:35%;width:100px;height:100px;margin:-50px;background:#FDF6D8"></i>`;for(let i=0;i<3;i++)h+=`<i class="fx-cl" style="top:${rr(15,45)}%;background:rgba(200,215,235,.45);transform:scale(${rr(.8,1.4)});--d:${rr(45,80)}s;--dl:-${rr(0,60)}s"></i>`}
+  return h?`<div class="hb-fx" aria-hidden="true">${h}</div>`:''}
 function animOn(){return S.anim!==false}
 function hkHash(s){let h=5381;for(let i=0;i<s.length;i+=3)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)+s.length}
 function heroHead(p,k,ha){const h=heroHead0(p,k,ha);return h.replace('<header ',`<header data-hk="${hkHash(h)}" `)}
