@@ -371,7 +371,7 @@ function ptDay(S,e,ds){const c=cfg(S,'partner'),h=c.wage/8,al=c.travel+c.meal+c.
   if(!e)return null;
   if(e.s==='work'){const o=+e.ot||0;return {wage:c.wage,ot:o*h*c.ot15,allow:al,hours:o,worked:1,base:c.wage}}
   if(e.s==='hol'){const o=+e.ot||0;return {wage:c.wage*c.holMult,ot:o*h*c.ot3,allow:al,hours:o,worked:1,base:c.wage*c.holMult}}
-  if(e.s==='vac')return Object.assign(z,{wage:c.wage,base:c.wage});
+  if(e.s==='vac'||e.s==='sick')return Object.assign(z,{wage:c.wage,base:c.wage});
   if(e.s==='off'&&holMap(S,'partner')[ds]&&c.paidHoliday)return Object.assign(z,{wage:c.wage,base:c.wage});
   return z}
 function ptStats(S,curKey){const SO=cfg(S,'partner').satOff||[];const by=Array.from({length:7},()=>({n:0,w:0}));let otH=0,wk=0,cycles=0;
@@ -613,7 +613,7 @@ function sheetHTML(){if(!S.sheet)return '';if(S.sheet.ex)return exSheetHTML();co
     body=`<div class="small" style="color:var(--fg2)">${q}</div><div class="hours">${vals.map(v=>`<button type="button" class="${v===0?'w':''}" data-act="hours" data-v="${v}" aria-pressed="${cur===v}">${v===0?'ไม่มี':hrs(v)}</button>`).join('')}</div>
     <div class="btns"><label class="field" style="flex:1 1 140px">ชั่วโมงอื่นๆ<input id="cust" type="number" inputmode="decimal" min="0" max="16" step="0.5" placeholder="เช่น 4.5"></label><button class="btn ghost" type="button" data-act="custom" style="align-self:flex-end">ใช้ค่านี้</button></div>`}
   else{const warn=p==='partner'&&LOSE.includes(mode);
-    body=`${warn?`<div class="note badc">${mode==='sick'?'ลาป่วย':'ลากิจ'} เบี้ยขยัน ${B(cfg(S,'partner').diligence)} รอบนี้จะหลุด</div>`:''}${p==='partner'&&mode==='vac'?`<div class="note goodn"><b>✓ ลาพักร้อน เบี้ยขยันไม่หลุด</b><br>ได้ค่าแรงปกติ ${B(cfg(S,'partner').wage)} (ไม่มีค่ารถ · ค่าอาหาร · ค่าทักษะ) · ปีนี้ใช้พักร้อนไป ${vacUsed(parseD(ds).getFullYear())} วัน</div>`:''}<button class="btn" type="button" data-act="saveoff" data-v="${mode}" aria-pressed="${!!(e&&e.s===mode)}">${e&&e.s===mode?'✓ บันทึกแล้ว':'บันทึก'+opts.find(o=>o[0]===mode)[1].replace(' / ','/')}</button>`}
+    body=`${warn?`<div class="note badc">${mode==='sick'?`ลาป่วย ได้ค่าแรงปกติ ${B(cfg(S,'partner').wage)} แต่`:'ลากิจ ไม่ได้ค่าแรง และ'}เบี้ยขยัน ${B(cfg(S,'partner').diligence)} รอบนี้จะหลุด</div>`:''}${p==='partner'&&mode==='vac'?`<div class="note goodn"><b>✓ ลาพักร้อน เบี้ยขยันไม่หลุด</b><br>ได้ค่าแรงปกติ ${B(cfg(S,'partner').wage)} (ไม่มีค่ารถ · ค่าอาหาร · ค่าทักษะ) · ปีนี้ใช้พักร้อนไป ${vacUsed(parseD(ds).getFullYear())} วัน</div>`:''}<button class="btn" type="button" data-act="saveoff" data-v="${mode}" aria-pressed="${!!(e&&e.s===mode)}">${e&&e.s===mode?'✓ บันทึกแล้ว':'บันทึก'+opts.find(o=>o[0]===mode)[1].replace(' / ','/')}</button>`}
   let res='';
   if(e){if(p==='me'){const sal=salaryFor(S,k);const r=meDay(S,e,sal);const h=sal/240;
       if(e.s==='work')res=`<div class="line"><span>OT ${hrs(+e.ot||0)} ชม. × ${B(h*1.5,2)}</span><span>${B(r.otPay,2)}</span></div><div class="line"><span>ค่าอาหาร (กลางวัน${+e.ot>0?' + OT':''})</span><span>${B(r.meal,2)}</span></div>`;
@@ -621,7 +621,7 @@ function sheetHTML(){if(!S.sheet)return '';if(S.sheet.ex)return exSheetHTML();co
       res+=`<div class="total"><span>ได้วันนั้น</span><span class="big">${B(r.otPay+r.meal,2)}</span></div>`}
     else{const r=ptDay(S,e,ds);const c=cfg(S,'partner');
       if(r.worked)res=`<div class="line"><span>ค่าแรง${e.s==='hol'?' (วันหยุด '+c.holMult+'×)':''}</span><span>${B(r.wage)}</span></div><div class="line"><span>OT ${hrs(r.hours)} ชม.</span><span>${B(r.ot,2)}</span></div><div class="line"><span>รถ ${c.travel} · อาหาร ${c.meal} · ทักษะ ${c.skill}</span><span>${B(r.allow)}</span></div>`;
-      else if(r.wage)res=`<div class="line"><span>${e.s==='vac'?'ลาพักร้อน ได้ค่าแรง':'วันหยุดประเพณี ได้ค่าแรง'}</span><span>${B(r.wage)}</span></div>`;
+      else if(r.wage)res=`<div class="line"><span>${e.s==='vac'?'ลาพักร้อน ได้ค่าแรง':e.s==='sick'?'ลาป่วย ได้ค่าแรง':'วันหยุดประเพณี ได้ค่าแรง'}</span><span>${B(r.wage)}</span></div>`;
       res+=`<div class="total"><span>ได้วันนั้น</span><span class="big">${B(r.wage+r.ot+r.allow,2)}</span></div>`}}
   return `<div class="scrim" data-act="close"></div><div class="sheet ${PCLS(p)}" role="dialog" aria-modal="true" aria-label="${thDate(ds)}"><div class="in"><div class="grab"></div>
   <div class="row" style="align-items:center"><div><b style="font-size:20px">${thDate(ds)}</b><div class="tiny muted">${p==='me'?'ของสง':'ของตา'} · ${hn?esc(hn):off?'วันหยุด':'วันทำงาน'}</div></div><button class="x" type="button" data-act="close" aria-label="ปิด" id="sheetclose">✕</button></div>
@@ -944,7 +944,7 @@ function renderSet(){const p=S.person;const N=(id,l,v,st='1')=>`<label class="fi
   else{const s=cfg(S,'partner');
     f=`<section class="card"><h2>สูตรของตา</h2><div class="fields">${N('ps-w','ค่าแรง/วัน',s.wage)}${N('ps-cs','ตัดรอบทุกวันที่',s.cycleStart-1)}${N('ps-tr','ค่ารถ/วัน',s.travel)}${N('ps-me','ค่าอาหาร/วัน',s.meal)}${N('ps-sk','ค่าทักษะ/วัน',s.skill)}
     ${N('ps-dil','เบี้ยขยัน/รอบ',s.diligence)}${N('ps-hm','ค่าแรงวันหยุด (เท่า)',s.holMult,'0.5')}${N('ps-sso','ประกันสังคม %',s.ssoRate,'0.5')}</div>
-    <div class="tiny muted">เบี้ยขยันหลุดเมื่อลาป่วยหรือลากิจ · ลาพักร้อนไม่หลุด (ได้ค่าแรงปกติ)</div>
+    <div class="tiny muted">ลาป่วยได้ค่าแรงแต่เบี้ยขยันหลุด · ลากิจไม่ได้ค่าแรงและเบี้ยขยันหลุด · ลาพักร้อนไม่หลุด (ได้ค่าแรงปกติ)</div>
     <label class="small" style="display:flex;gap:10px;align-items:center;min-height:44px"><input id="ps-ph" type="checkbox" ${s.paidHoliday?'checked':''}> วันหยุดประเพณีได้ค่าแรง</label>
     <button class="btn" type="button" data-act="ptsave">บันทึก</button></section>`}
   return `${topBar('ตั้งค่า',personSeg())}${banner()}${themeCard(p)}${connCard()}${f}${satCard(p)}`}
